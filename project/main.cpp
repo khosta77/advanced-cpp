@@ -19,6 +19,12 @@ private:
     std::string m_msg;
 };
 
+class LRUCCapacityEquallNull : public LRUCacheException
+{
+public:
+    LRUCCapacityEquallNull() : LRUCacheException( "capacity is null" ) {}     
+};
+
 template<typename K, typename T>
 class LRUCache
 {
@@ -33,6 +39,9 @@ public:
 
     T get( K key )
     {
+        if( _capacity == 0 )
+            throw LRUCCapacityEquallNull();
+
         if( mp.find(key) == mp.end() )
             throw LRUCacheException("Ключ не найден");
     
@@ -42,6 +51,9 @@ public:
     
     void put( K key, T value )
     {
+        if( _capacity == 0 )
+            throw LRUCCapacityEquallNull();
+
         if( mp.find(key) != mp.end() )
         {
             mp[key]->second = value;
@@ -75,12 +87,17 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
     int value = 0;
     for( const TestObj& testObj : testScript )
     {
-        std::cout << testObj._key << ' ' << testObj._value << std::endl;
         if( testObj._put )
         {
             try
             {
                 cache.put( testObj._key, testObj._value );
+            }
+            catch( const LRUCCapacityEquallNull& capNull )
+            {
+                if( capacity == 0 )
+                    continue;
+                return false;
             }
             catch( const std::exception& emsg )
             {
@@ -92,6 +109,12 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
             try
             {
                 value = cache.get( testObj._key );
+            }
+            catch( const LRUCCapacityEquallNull& capNull )  // Если размер изначальный равен 0
+            {
+                if( capacity == 0 )
+                    continue;
+                return false;
             }
             catch( const std::exception& emsg )
             {
@@ -123,9 +146,36 @@ std::vector<TestObj> BaseFromLeetCode = {
     { "4", 4, false }
 };
 
+std::vector<TestObj> DoubleKey = {
+    { "A", 1, true },
+    { "A", 1, false },
+    { "A", 1, false },
+    { "B", 2, true },
+    { "A", 3, true },
+    { "A", 3, false}
+};
+
+std::vector<TestObj> EmptyCache = {
+    { "A", -1, false }
+};
+
+std::vector<TestObj> ManyDoubleElement = {
+    { "A", 1, true },
+    { "A", 1, true },
+    { "A", 1, true },
+    { "A", 1, true },
+    { "A", 1, true },
+    { "A", 1, true },
+    { "A", 1, false }
+};
+
 int main( int argc, char* argv[] )
 {
     assert( TEST_CACHE_PUTaGET( 2, BaseFromLeetCode ) );
+    assert( TEST_CACHE_PUTaGET( 3, DoubleKey ) );
+    assert( TEST_CACHE_PUTaGET( 2, EmptyCache ) );
+    assert( TEST_CACHE_PUTaGET( 0, BaseFromLeetCode ) );
+    assert( TEST_CACHE_PUTaGET( 2, ManyDoubleElement ) );
     return 0;
 }
 
