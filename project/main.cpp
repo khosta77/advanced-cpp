@@ -44,8 +44,8 @@ class LRUCache
 private:
 
     size_t _capacity;
-    std::unordered_map<K, typename std::list<std::pair<K, T>>::iterator> mp;
-    std::list<std::pair<K, T>> lst;
+    std::unordered_map<K, typename std::list<std::pair<K, T>>::iterator> _hashTable;
+    std::list<std::pair<K, T>> _cacheList;
 
     /** @brief checkCapacityIsZero - Часто надо проверять _capacity, обернул в inline функцию
      * */
@@ -59,7 +59,7 @@ private:
      * */
     inline void checkKeyIsFinding( const K& key )
     {
-        if( mp.find( key ) == mp.end() )
+        if( _hashTable.find( key ) == _hashTable.end() )
             throw LRUCKeyNotFind();
     }
 public:
@@ -71,11 +71,13 @@ public:
     
     /** @brief Конструктор копирования
      * */
-    LRUCache( const LRUCache<K, T>& rhs ) : _capacity(rhs._capacity), lst(rhs.lst), mp(rhs.mp) {}
+    LRUCache( const LRUCache<K, T>& rhs ) : _capacity(rhs._capacity), _cacheList(rhs._cacheList),
+        _hashTable(rhs._hashTable) {}
 
     /** @brief Конструктор перемещения
      * */
-    LRUCache( LRUCache<K, T>&& rhs ) : _capacity(rhs._capacity), lst(rhs.lst), mp(rhs.mp) {}
+    LRUCache( LRUCache<K, T>&& rhs ) : _capacity(rhs._capacity), _cacheList(rhs._cacheList),
+        _hashTable(rhs._hashTable) {}
 
     /** @brief Деструктор
      * */
@@ -88,7 +90,7 @@ public:
      * */
     friend std::ostream& operator<<( std::ostream& os, const LRUCache& rhs )
     {
-        for( const auto& [ key, value ] : rhs.lst )
+        for( const auto& [ key, value ] : rhs._cacheList )
             os << key << ": " << value << "\n";
         return os;
     }
@@ -139,14 +141,14 @@ public:
      * */
     iterator begin() noexcept
     {
-        return iterator( lst.begin() );
+        return iterator( _cacheList.begin() );
     }
 
     /** @brief end - метод получения конца итератора
      * */
     iterator end() noexcept
     {
-        return iterator( lst.end() );
+        return iterator( _cacheList.end() );
     }
 
     // cbegin, cend не стал реализовывать, показалось лишним
@@ -156,14 +158,14 @@ public:
      * */
     const bool empty() const noexcept
     {
-        return mp.empty();
+        return _hashTable.empty();
     }
     
     /** @brief size - размер заполненого хеша
      * */
     const size_t size() const noexcept
     {
-        return mp.size();
+        return _hashTable.size();
     }
 
     //// Modifiers
@@ -171,32 +173,15 @@ public:
      * */
     void clear() noexcept
     {
-        lst.clear();
-        mp.clear();
+        _cacheList.clear();
+        _hashTable.clear();
     }
 
     /** @brief insert - вставка пары
      * */
     void insert( const std::pair<K, T>& pr )
     {
-        checkCapacityIsZero();
-        
-        if( mp.find( pr.first ) != mp.end() )
-        {
-            mp[pr.first]->second = pr.second;
-            lst.splice( lst.begin(), lst, mp[pr.first] );
-        }
-        else
-        {
-            if( lst.size() == _capacity )
-            {
-                K lastKey = lst.back().first;
-                mp.erase( lastKey );
-                lst.pop_back();
-            }
-            lst.emplace_front( pr );
-            mp[pr.fisrt] = lst.begin();
-        }
+        insert( pr.first, pr.second );
     }
 
     /** @brief insert - вставка ключ+значение
@@ -205,21 +190,21 @@ public:
     {
         checkCapacityIsZero();
 
-        if( mp.find( key ) != mp.end() )
+        if( _hashTable.find( key ) != _hashTable.end() )
         {
-            mp[key]->second = value;
-            lst.splice( lst.begin(), lst, mp[key] );
+            _hashTable[key]->second = value;
+            _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );
         }
         else
         {
-            if( lst.size() == _capacity )
+            if( _cacheList.size() == _capacity )
             {
-                K lastKey = lst.back().first;
-                mp.erase(lastKey);
-                lst.pop_back();
+                K lastKey = _cacheList.back().first;
+                _hashTable.erase(lastKey);
+                _cacheList.pop_back();
             }
-            lst.emplace_front( key, value );
-            mp[key] = lst.begin();
+            _cacheList.emplace_front( key, value );
+            _hashTable[key] = _cacheList.begin();
         }
     }
 
@@ -234,8 +219,8 @@ public:
     {
         checkCapacityIsZero();
 
-        lst.erase(*it);
-        mp.erase(*it.first);
+        _cacheList.erase(*it);
+        _hashTable.erase(*it.first);
     }
 
     /** @brief erase - удаление элемента по ключу
@@ -245,8 +230,8 @@ public:
         checkCapacityIsZero();
         checkKeyIsFinding( key );
 
-        lst.erase(mp[key]);
-        mp.erase(key);
+        _cacheList.erase(_hashTable[key]);
+        _hashTable.erase(key);
     }
 
     //// Lookup
@@ -274,8 +259,8 @@ public:
      * */
     T& operator[]( const K& key )
     {
-        lst.splice( lst.begin(), lst, mp[key] );
-        return (T&)mp[key]->second;
+        _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );
+        return (T&)_hashTable[key]->second;
     }
 
     //// other
