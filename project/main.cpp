@@ -5,9 +5,6 @@
 #include <cassert>
 #include <exception>
 
-#define NOT_USE_THIS_CODE 1
-
-#if NOT_USE_THIS_CODE
 #define CELL_EMPTY  0x00
 #define CELL_DELETE 0x01
 #define CELL_KEY    0x02
@@ -49,6 +46,9 @@ class HashTable
         buffer.clear();
     }
 
+    /** @brief find_A_erase - концептуально метод схож с universalHashTableMethod, но просто осуществляет
+     *                        поиск или удаление. 
+     * */
     bool find_A_erase( const K& key, const bool& isDeleted )
     {
         const size_t hashValue = this->_hash( key );
@@ -108,9 +108,7 @@ class HashTable
         while( ( _table[hash]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
         {
             if( ( _table[hash]._key == key ) && ( _table[hash]._state != CELL_DELETE) )
-            {
                 return ( ( !isAdded ) ? true : false);
-            }
 
             if( isAdded && ( ( _table[hash]._state == CELL_DELETE ) && ( deletedItem.first ) ) )
             {
@@ -137,7 +135,10 @@ public:
         _table.resize(8);
     }
 
-    ~HashTable() { _table.clear(); }
+    ~HashTable()
+    {
+        _table.clear();
+    }
 
     bool find( const K& key )
     {
@@ -177,17 +178,7 @@ public:
         _size = 0;
         _table.resize(8);
     }
-    
-    void print()
-    {
-        std::cout << std::endl;
-        for( auto cell : _table )
-            std::cout << "h " << cell._hash << " e " << cell._item << " s " << ((int)cell._state) << std::endl;
-    }
-
 };
-#endif
-
 
 /** @class LRUCacheException - родительский класс ошибок для всего LRUcache, выводит сообщение с ошибкой
  * */
@@ -230,7 +221,6 @@ private:
     size_t _capacity;
 
     HashTable<K, typename std::list<std::pair<K, T>>::iterator> _hashTable;
-    //std::unordered_map<K, typename std::list<std::pair<K, T>>::iterator> _hashTable;
     std::list<std::pair<K, T>> _cacheList;
 
     /** @brief checkCapacityIsZero - Часто надо проверять _capacity, обернул в inline функцию
@@ -245,7 +235,7 @@ private:
      * */
     inline void checkKeyIsFinding( const K& key )
     {
-        if( !_hashTable.find(key) )  // _hashTable.find( key ) == _hashTable.end() )
+        if( !_hashTable.find(key) )
             throw LRUCKeyNotFind();
     }
 public:
@@ -375,25 +365,23 @@ public:
     void insert( const K& key, const T& value )
     {
         checkCapacityIsZero();
-        if( _hashTable.find( key ) ) //!= _hashTable.end() )
+        if( _hashTable.find( key ) )
         {
-            //_hashTable[key]->second = value;  //
             auto it = std::list<std::pair<K, T>>{std::pair<K, T>( key, value )};
             _hashTable.erase( key );
             _hashTable.insert( key, it.begin() );
-            _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );  //
+            _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );
         }
         else
         {
             if( _cacheList.size() == _capacity )
             {
                 K lastKey = _cacheList.back().first;
-                _hashTable.erase(lastKey); //
+                _hashTable.erase(lastKey);
                 _cacheList.pop_back();
             }
             _cacheList.emplace_front( key, value );
             _hashTable.insert( key, _cacheList.begin() );
-            //_hashTable[key] = _cacheList.begin();  //
         }
     }
 
@@ -409,7 +397,7 @@ public:
         checkCapacityIsZero();
 
         _cacheList.erase(*it);
-        _hashTable.erase(*it.first);  //
+        _hashTable.erase(*it.first);
     }
 
     /** @brief erase - удаление элемента по ключу
@@ -420,7 +408,7 @@ public:
         checkKeyIsFinding( key );
 
         _cacheList.erase( _hashTable[key] );
-        _hashTable.erase( key );  //
+        _hashTable.erase( key );
     }
 
     //// Lookup
@@ -449,7 +437,7 @@ public:
     T& operator[]( const K& key )
     {
         _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );
-        return (T&)_hashTable[key]->second;  //
+        return (T&)_hashTable[key]->second;
     }
 
     //// other
@@ -499,7 +487,6 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
             }
             catch( const std::exception& emsg )
             {
-                //std::cout << emsg.what() << std::endl;
                 return false;
             };
         }
@@ -517,7 +504,6 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
             }
             catch( const std::exception& emsg )
             {
-                //std::cout << emsg.what() << std::endl;
                 if( testObj._value != -1 )
                 {
                     return false;
@@ -527,7 +513,6 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
 
             if( value != testObj._value )
             {
-                //std::cout << "Wait value: " << testObj._value << " in real: " << value << std::endl;
                 return false;
             }
         }
@@ -577,28 +562,6 @@ int main( int argc, char* argv[] )
     assert( TEST_CACHE_PUTaGET( 2, EmptyCache ) );
     assert( TEST_CACHE_PUTaGET( 0, BaseFromLeetCode ) );
     assert( TEST_CACHE_PUTaGET( 2, ManyDoubleElement ) );
-#if 0
-    LRUCache<int, std::string> cache(3);
-    cache.insert(1, "one");
-    cache.insert(2, "two");
-    cache.insert(3, "three");
-
-    // Итерируемся по кэшу
-    for (const auto& [key, value] : cache) {
-        std::cout << key << ": " << value << std::endl;
-        value = "X";
-    }
-
-    cache.insert(4, "four"); // Это удалит "one"
-    
-    std::cout << "After adding key 4:" << std::endl;
-    std::cout << cache << std::endl;
-
-    cache.erase(4);
-    std::cout << "After del key 4:" << std::endl;
-    std::cout << cache << std::endl;
-
-#endif
     return 0;
 }
 
