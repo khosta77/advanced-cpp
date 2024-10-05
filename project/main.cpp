@@ -25,6 +25,13 @@ public:
     LRUCCapacityEquallNull() : LRUCacheException( "capacity is null" ) {}     
 };
 
+class LRUCKeyNotFind : public LRUCacheException
+{
+public:
+    LRUCKeyNotFind() : LRUCacheException( "key not find" ) {}
+};
+
+
 template<typename K, typename T>
 class LRUCache
 {
@@ -34,6 +41,17 @@ private:
     std::unordered_map<K, typename std::list<std::pair<K, T>>::iterator> mp;
     std::list<std::pair<K, T>> lst;
 
+    inline void checkCapacityIsZero()
+    {
+        if( _capacity == 0 )
+            throw LRUCCapacityEquallNull();
+    }
+
+    inline void checkKeyIsFinding( const K& key )
+    {
+        if( mp.find( key ) == mp.end() )
+            throw LRUCKeyNotFind();
+    }
 public:
 
     //// Member functions
@@ -47,6 +65,14 @@ public:
     {
         clear();
     }
+
+    friend std::ostream& operator<<( std::ostream& os, const LRUCache& rhs )
+    {
+        for( const auto& [ key, value ] : rhs.lst )
+            os << key << ": " << value << "\n";
+        return os;
+    }
+
 
     //// Iterators
     class iterator
@@ -91,8 +117,6 @@ public:
         return iterator( lst.begin() );
     }
 
-
-
     iterator end() noexcept
     {
         return iterator( lst.end() );
@@ -118,14 +142,33 @@ public:
         mp.clear();
     }
 
-    void insert
+    void insert( const std::pair<K, T>& pr )
+    {
+        checkCapacityIsZero();
+        
+        if( mp.find( pr.first ) != mp.end() )
+        {
+            mp[pr.first]->second = pr.second;
+            lst.splice( lst.begin(), lst, mp[pr.first] );
+        }
+        else
+        {
+            if( lst.size() == _capacity )
+            {
+                K lastKey = lst.back().first;
+                mp.erase( lastKey );
+                lst.pop_back();
+            }
+            lst.emplace_front( pr );
+            mp[pr.fisrt] = lst.begin();
+        }
+    }
 
     void insert( const K& key, const T& value )
     {
-        if( _capacity == 0 )
-            throw LRUCCapacityEquallNull();
+        checkCapacityIsZero();
 
-        if( mp.find(key) != mp.end() )
+        if( mp.find( key ) != mp.end() )
         {
             mp[key]->second = value;
             lst.splice( lst.begin(), lst, mp[key] );
@@ -142,28 +185,40 @@ public:
             mp[key] = lst.begin();
         }
     }
+
     // emplace не реализовал, по идеи в данной структуре его не должно быть, так как он всегда бы возвращал \
     // true и от insert ни чем не отличался бы
+
+    void erase( const iterator& it )
+    {
+        checkCapacityIsZero();
+
+        lst.erase(*it);
+        mp.erase(*it.first);
+    }
+
+    void erase( const K& key )
+    {
+        checkCapacityIsZero();
+        checkKeyIsFinding( key );
+
+        lst.erase(mp[key]);
+        mp.erase(key);
+    }
 
     //// Lookup
     T& at( const K& key )
     {
-        if( _capacity == 0 )
-            throw LRUCCapacityEquallNull();
-
-        if( mp.find(key) == mp.end() )
-            throw LRUCacheException("Ключ не найден");
+        checkCapacityIsZero();
+        checkKeyIsFinding( key );
 
         return this->operator[](key);
     }
 
     const T& at( const K& key ) const
     {
-        if( _capacity == 0 )
-            throw LRUCCapacityEquallNull();
-
-        if( mp.find(key) == mp.end() )
-            throw LRUCacheException("Ключ не найден");
+        checkCapacityIsZero();
+        checkKeyIsFinding( key );
 
         return this->operator[](key);
     }
@@ -177,8 +232,7 @@ public:
     // other
     void recapacity( const size_t& newCapacity )
     {
-        lst.clear();
-        mp.clear();
+        clear();
         _capacity = newCapacity;
     }
 
@@ -307,10 +361,12 @@ int main( int argc, char* argv[] )
     cache.insert(4, "four"); // Это удалит "one"
     
     std::cout << "After adding key 4:" << std::endl;
+    std::cout << cache << std::endl;
 
-    for (const auto& [key, value] : cache) {
-        std::cout << key << ": " << value << std::endl;
-    }
+    cache.erase(4);
+    std::cout << "After del key 4:" << std::endl;
+    std::cout << cache << std::endl;
+
 #endif
     return 0;
 }
