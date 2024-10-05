@@ -5,7 +5,7 @@
 #include <cassert>
 #include <exception>
 
-/** @brief Ошибка, с выводом сообщения
+/** @class LRUCacheException - родительский класс ошибок для всего LRUcache, выводит сообщение с ошибкой
  * */
 class LRUCacheException : public std::exception
 {
@@ -19,19 +19,25 @@ private:
     std::string m_msg;
 };
 
+/** @class LRUCCapacityEquallNull - класс ошибки, если capacity == 0
+ * */
 class LRUCCapacityEquallNull : public LRUCacheException
 {
 public:
     LRUCCapacityEquallNull() : LRUCacheException( "capacity is null" ) {}     
 };
 
+/** @class LRUCKeyNotFind класс ошибки если ключ не найден
+ * */
 class LRUCKeyNotFind : public LRUCacheException
 {
 public:
     LRUCKeyNotFind() : LRUCacheException( "key not find" ) {}
 };
 
-
+/** class LRUCache - Least Recently Used (LRU) Cache
+ *                   Методы класса я старался по максимому и возможности взять из std::unordered_map
+ * */
 template<typename K, typename T>
 class LRUCache
 {
@@ -41,12 +47,16 @@ private:
     std::unordered_map<K, typename std::list<std::pair<K, T>>::iterator> mp;
     std::list<std::pair<K, T>> lst;
 
+    /** @brief checkCapacityIsZero - Часто надо проверять _capacity, обернул в inline функцию
+     * */
     inline void checkCapacityIsZero()
     {
         if( _capacity == 0 )
             throw LRUCCapacityEquallNull();
     }
 
+    /** @brief checkKeyIsFinding - Часто надо проверять ключ, обернул в inline функцию
+     * */
     inline void checkKeyIsFinding( const K& key )
     {
         if( mp.find( key ) == mp.end() )
@@ -55,17 +65,27 @@ private:
 public:
 
     //// Member functions
+    /** @brief Базовый конструктор
+     * */
     LRUCache( const size_t& capacity = 0 ) : _capacity(capacity) {}
     
+    /** @brief Конструктор копирования
+     * */
     LRUCache( const LRUCache<K, T>& rhs ) : _capacity(rhs._capacity), lst(rhs.lst), mp(rhs.mp) {}
 
+    /** @brief Конструктор перемещения
+     * */
     LRUCache( LRUCache<K, T>&& rhs ) : _capacity(rhs._capacity), lst(rhs.lst), mp(rhs.mp) {}
 
+    /** @brief Деструктор
+     * */
     ~LRUCache()
     {
         clear();
     }
 
+    /** @brief перегрузка оператора побитового сдвига для выводы std::ostream
+     * */
     friend std::ostream& operator<<( std::ostream& os, const LRUCache& rhs )
     {
         for( const auto& [ key, value ] : rhs.lst )
@@ -75,6 +95,9 @@ public:
 
 
     //// Iterators
+
+    /** @class iterator - итератор
+     * */
     class iterator
     {
         using listIt = std::list<std::pair<K, T>>::iterator;
@@ -112,11 +135,15 @@ public:
         }
     };
 
+    /** @brief begin - метод получения начала итератора
+     * */
     iterator begin() noexcept
     {
         return iterator( lst.begin() );
     }
 
+    /** @brief end - метод получения конца итератора
+     * */
     iterator end() noexcept
     {
         return iterator( lst.end() );
@@ -125,23 +152,31 @@ public:
     // cbegin, cend не стал реализовывать, показалось лишним
 
     //// Capacity
-    bool empty() const
+    /** @brief empty - проверка не пуста ли наша таблица
+     * */
+    const bool empty() const noexcept
     {
         return mp.empty();
     }
     
-    size_t size() const
+    /** @brief size - размер заполненого хеша
+     * */
+    const size_t size() const noexcept
     {
         return mp.size();
     }
 
     //// Modifiers
-    void clear()
+    /** @brief clear - очистить все
+     * */
+    void clear() noexcept
     {
         lst.clear();
         mp.clear();
     }
 
+    /** @brief insert - вставка пары
+     * */
     void insert( const std::pair<K, T>& pr )
     {
         checkCapacityIsZero();
@@ -164,6 +199,8 @@ public:
         }
     }
 
+    /** @brief insert - вставка ключ+значение
+     * */
     void insert( const K& key, const T& value )
     {
         checkCapacityIsZero();
@@ -186,9 +223,13 @@ public:
         }
     }
 
-    // emplace не реализовал, по идеи в данной структуре его не должно быть, так как он всегда бы возвращал \
-    // true и от insert ни чем не отличался бы
+    /*
+     * emplace не реализовал, по идеи в данной структуре его не должно быть,
+     * так как он всегда бы возвращал true и от insert ни чем не отличался бы
+     * */
 
+    /** @brief erase - удаление по итератору
+     * */
     void erase( const iterator& it )
     {
         checkCapacityIsZero();
@@ -197,6 +238,8 @@ public:
         mp.erase(*it.first);
     }
 
+    /** @brief erase - удаление элемента по ключу
+     * */
     void erase( const K& key )
     {
         checkCapacityIsZero();
@@ -207,6 +250,8 @@ public:
     }
 
     //// Lookup
+    /** @brief at - взятие элемета с тотальной проверкой, есть возможность после его редактировать
+     * */
     T& at( const K& key )
     {
         checkCapacityIsZero();
@@ -215,6 +260,8 @@ public:
         return this->operator[](key);
     }
 
+    /** @brief at - взятие элемета с тотальной проверкой
+     * */
     const T& at( const K& key ) const
     {
         checkCapacityIsZero();
@@ -223,20 +270,27 @@ public:
         return this->operator[](key);
     }
 
+    /** @brief operator[] - взятие элемета, есть возможность после его редактировать
+     * */
     T& operator[]( const K& key )
     {
         lst.splice( lst.begin(), lst, mp[key] );
         return (T&)mp[key]->second;
     }
 
-    // other
-    void recapacity( const size_t& newCapacity )
+    //// other
+    /** @brief recapacity - изменить размер _capacity, очистить все данные что были до, мало ли
+     *                      TODO: исправить, чтобы данные не удалялись
+     * */
+    void recapacity( const size_t& newCapacity ) noexcept
     {
         clear();
         _capacity = newCapacity;
     }
 
-    size_t getCapacity() const
+    /** @brief getCapacity - получить _capacity
+     * */
+    const size_t getCapacity() const noexcept
     {
         return _capacity;
     }
@@ -346,7 +400,7 @@ int main( int argc, char* argv[] )
     assert( TEST_CACHE_PUTaGET( 2, EmptyCache ) );
     assert( TEST_CACHE_PUTaGET( 0, BaseFromLeetCode ) );
     assert( TEST_CACHE_PUTaGET( 2, ManyDoubleElement ) );
-#if 1
+#if 0
     LRUCache<int, std::string> cache(3);
     cache.insert(1, "one");
     cache.insert(2, "two");
