@@ -30,26 +30,97 @@ class LRUCache
 {
 private:
 
-    int _capacity;
+    size_t _capacity;
     std::unordered_map<K, typename std::list<std::pair<K, T>>::iterator> mp;
     std::list<std::pair<K, T>> lst;
 
 public:
-    LRUCache( int capacity ) : _capacity(capacity) {}
 
-    T get( K key )
-    {
-        if( _capacity == 0 )
-            throw LRUCCapacityEquallNull();
-
-        if( mp.find(key) == mp.end() )
-            throw LRUCacheException("Ключ не найден");
+    //// Member functions
+    LRUCache( const size_t& capacity = 0 ) : _capacity(capacity) {}
     
-        lst.splice( lst.begin(), lst, mp[key] );
-        return mp[key]->second;
+    LRUCache( const LRUCache<K, T>& rhs ) : _capacity(rhs._capacity), lst(rhs.lst), mp(rhs.mp) {}
+
+    LRUCache( LRUCache<K, T>&& rhs ) : _capacity(rhs._capacity), lst(rhs.lst), mp(rhs.mp) {}
+
+    ~LRUCache()
+    {
+        clear();
+    }
+
+    //// Iterators
+    class iterator
+    {
+        using listIt = std::list<std::pair<K, T>>::iterator;
+
+        listIt _it;
+    public:
+        iterator( typename std::list<std::pair<K, T>>::iterator it ) : _it(it) {}
+
+        bool operator!=(const iterator& other) const
+        {
+            return _it != other._it;
+        }
+
+        bool operator==(const iterator& other) const
+        {
+            return _it == other._it;
+        }
+
+        iterator& operator++()
+        {
+            ++_it;
+            return *this;
+        }
+
+        iterator operator++(int)
+        {
+            iterator buffer = this;
+            ++_it;
+            return buffer;
+        }
+
+        std::pair<K, T&> operator*()
+        {
+            return { _it->first, (T&)_it->second };
+        }
+    };
+
+    iterator begin() noexcept
+    {
+        return iterator( lst.begin() );
+    }
+
+
+
+    iterator end() noexcept
+    {
+        return iterator( lst.end() );
+    }
+
+    // cbegin, cend не стал реализовывать, показалось лишним
+
+    //// Capacity
+    bool empty() const
+    {
+        return mp.empty();
     }
     
-    void put( K key, T value )
+    size_t size() const
+    {
+        return mp.size();
+    }
+
+    //// Modifiers
+    void clear()
+    {
+        lst.clear();
+        mp.clear();
+    }
+
+    void insert
+
+    void insert( const K& key, const T& value )
     {
         if( _capacity == 0 )
             throw LRUCCapacityEquallNull();
@@ -71,6 +142,51 @@ public:
             mp[key] = lst.begin();
         }
     }
+    // emplace не реализовал, по идеи в данной структуре его не должно быть, так как он всегда бы возвращал \
+    // true и от insert ни чем не отличался бы
+
+    //// Lookup
+    T& at( const K& key )
+    {
+        if( _capacity == 0 )
+            throw LRUCCapacityEquallNull();
+
+        if( mp.find(key) == mp.end() )
+            throw LRUCacheException("Ключ не найден");
+
+        return this->operator[](key);
+    }
+
+    const T& at( const K& key ) const
+    {
+        if( _capacity == 0 )
+            throw LRUCCapacityEquallNull();
+
+        if( mp.find(key) == mp.end() )
+            throw LRUCacheException("Ключ не найден");
+
+        return this->operator[](key);
+    }
+
+    T& operator[]( const K& key )
+    {
+        lst.splice( lst.begin(), lst, mp[key] );
+        return (T&)mp[key]->second;
+    }
+
+    // other
+    void recapacity( const size_t& newCapacity )
+    {
+        lst.clear();
+        mp.clear();
+        _capacity = newCapacity;
+    }
+
+    size_t getCapacity() const
+    {
+        return _capacity;
+    }
+    
 };
 
 struct TestObj {
@@ -91,7 +207,7 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
         {
             try
             {
-                cache.put( testObj._key, testObj._value );
+                cache.insert( testObj._key, testObj._value );
             }
             catch( const LRUCCapacityEquallNull& capNull )
             {
@@ -108,7 +224,7 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
         {
             try
             {
-                value = cache.get( testObj._key );
+                value = cache.at( testObj._key );
             }
             catch( const LRUCCapacityEquallNull& capNull )  // Если размер изначальный равен 0
             {
@@ -176,6 +292,26 @@ int main( int argc, char* argv[] )
     assert( TEST_CACHE_PUTaGET( 2, EmptyCache ) );
     assert( TEST_CACHE_PUTaGET( 0, BaseFromLeetCode ) );
     assert( TEST_CACHE_PUTaGET( 2, ManyDoubleElement ) );
+#if 1
+    LRUCache<int, std::string> cache(3);
+    cache.insert(1, "one");
+    cache.insert(2, "two");
+    cache.insert(3, "three");
+
+    // Итерируемся по кэшу
+    for (const auto& [key, value] : cache) {
+        std::cout << key << ": " << value << std::endl;
+        value = "X";
+    }
+
+    cache.insert(4, "four"); // Это удалит "one"
+    
+    std::cout << "After adding key 4:" << std::endl;
+
+    for (const auto& [key, value] : cache) {
+        std::cout << key << ": " << value << std::endl;
+    }
+#endif
     return 0;
 }
 
