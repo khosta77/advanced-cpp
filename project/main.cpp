@@ -5,51 +5,35 @@
 #include <cassert>
 #include <exception>
 
-template <typename T = std::string>
-size_t hashStr( const T& key, const size_t& random_state, const size_t& maximum = 1e9 )
-{
-    size_t hash = 0, pow = 1;
-    for ( auto element : key ) 
-    {
-        hash = ( hash + element * pow ) % maximum;
-        pow = ( pow * random_state ) % maximum;
-    }
-    return hash;
-}
+#define NOT_USE_THIS_CODE 1
 
-template <typename T = std::string>
-size_t getDoubleHash(const std::string& key )
-{
-    return ( ( hashStr( key, 41 ) << 32 ) | hashStr( key, 42 ) );
-}
-
+#if NOT_USE_THIS_CODE
 #define CELL_EMPTY  0x00
 #define CELL_DELETE 0x01
 #define CELL_KEY    0x02
 
-template <typename T = std::string>
-struct Cell
-{
-    T _item;
-    size_t _hash;
-    uint8_t _state;
-
-    Cell() : _hash( 0 ), _state( CELL_EMPTY ) {}
-    Cell( T item, const size_t& hash ) : _item( std::move( item ) ), _hash( hash ),
-                                         _state( CELL_KEY ) {}
-};
-
-
-template <typename T = std::string>
+template <typename K, typename T, typename Hash = std::hash<K>>
 class HashTable
 {
+    struct Cell
+    {
+        K _key;
+        T _item;
+        size_t _hash;
+        uint8_t _state;
+
+        Cell() : _hash( 0 ), _state( CELL_EMPTY ) {}
+        Cell( const K& key, const T& item, const size_t& hash ) : _key(key), _item( item ),
+            _hash( hash ), _state( CELL_KEY ) {}
+    };
+
     size_t _size;
-    size_t ( *_hsh )( const T& );
-    std::vector<Cell<T>> _table;
+    Hash _hash;
+    std::vector<Cell> _table;
 
     void reBuild()
     {
-        std::vector<Cell<T>> buffer( ( _table.size() * 2 ) ); 
+        std::vector<Cell> buffer( ( _table.size() * 2 ) ); 
         size_t hash = 0, cnt = 0;
         for( size_t i  = 0; i < _table.size(); ++i )
         {
@@ -64,6 +48,28 @@ class HashTable
         _table = std::move( buffer );
         buffer.clear();
     }
+
+    bool find_A_erase( const K& key, const bool& isDeleted )
+    {
+        const size_t hashValue = this->_hash( key );
+        size_t hash = ( hashValue % _table.size() ), cnt = 0;
+
+        while( ( _table[hash]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
+        {
+            if( ( _table[hash]._key == key ) && ( _table[hash]._state != CELL_DELETE) )
+            {
+                if( isDeleted )
+                    _table[hash]._state = CELL_DELETE;
+                return true;
+            }
+
+            hash = ( ( ++hash ) % _table.size() );
+            ++cnt;
+        }
+
+        return false;
+    }
+
 
     /** @brief universalHashTableMethod - операции добавления, удаления и поиска элемента +- одинаковые 
      *                                    по реализации. Решил что лучше будет объединить в один метод.
@@ -84,26 +90,25 @@ class HashTable
      *  | true  | true    | Ошибка!!! |
      *  +-------+---------+-----------+
      * */
-    bool universalHashTableMethod( const T& item, const bool& isAdded, const bool& isDeleted )
+    bool universalHashTableMethod( const K& key, const T& item, const bool& isAdded, const bool& isDeleted )
     {
         // Так как у метода сложность O(1), то вызов его еще раз сделает тогда сложность O(2) -> O(1)
-        if( isAdded && universalHashTableMethod( item, false, false ) )
+        if( isAdded && find_A_erase( key, false ) )
             return false;
 
         if( isAdded && ( ( float )_size >= ( 0.75 * ( float )_table.size() ) ) )
             reBuild();
 
-        const size_t hashValue = _hsh( item );
+        const size_t hashValue = this->_hash( key );
         size_t hash = ( hashValue % _table.size() ), cnt = 0;
+
         // удаленный элемент из ряда идущих элементов
         std::pair<bool, size_t> deletedItem = std::pair<bool, size_t>( true, 0 );
 
         while( ( _table[hash]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
         {
-            if( ( _table[hash]._item == item ) && ( _table[hash]._state != CELL_DELETE) )
+            if( ( _table[hash]._key == key ) && ( _table[hash]._state != CELL_DELETE) )
             {
-                if( isDeleted )
-                    _table[hash]._state = CELL_DELETE;
                 return ( ( !isAdded ) ? true : false);
             }
 
@@ -121,23 +126,58 @@ class HashTable
             return false;
 
         hash = ( ( deletedItem.first ) ? hash : deletedItem.second );
-        _table[hash] = Cell( std::move( item ), hashValue );
+        _table[hash] = Cell( key, item, hashValue );
         ++_size;
         return true;
     }
 
 public:
-    HashTable( size_t ( *_hasher )( const T& ) = getDoubleHash ) : _hsh(_hasher), _size(0)
-        { _table.resize(8); }
+    HashTable() : _size(0)
+    {
+        _table.resize(8);
+    }
 
     ~HashTable() { _table.clear(); }
 
-    bool find( const T& item ) { return universalHashTableMethod( item, false, false ); }
+    bool find( const K& key )
+    {
+        return find_A_erase( key, false );
+    }
 
-    bool add( const T& item ) { return universalHashTableMethod( item, true, false ); }    
+    bool insert( const K& key, const T& item )
+    {
+        return universalHashTableMethod( key, item, true, false );
+    }    
     
-    bool remove( const T& item ) { return universalHashTableMethod( item, false, true ); }
+    bool erase( const K& key )
+    {
+        return find_A_erase( key, true );
+    }
 
+    T& operator[]( const K& key )
+    {
+        const size_t hashValue = this->_hash( key );
+        size_t hash = ( hashValue % _table.size() );
+        return (T&)_table[hash]._item;
+    }
+
+    const bool empty() const noexcept
+    {
+        return ( _size == 0 );
+    }
+
+    const size_t size() const noexcept
+    {
+        return _size;
+    }
+
+    void clear()
+    {
+        _table.clear();
+        _size = 0;
+        _table.resize(8);
+    }
+    
     void print()
     {
         std::cout << std::endl;
@@ -146,6 +186,8 @@ public:
     }
 
 };
+#endif
+
 
 /** @class LRUCacheException - родительский класс ошибок для всего LRUcache, выводит сообщение с ошибкой
  * */
@@ -186,7 +228,9 @@ class LRUCache
 private:
 
     size_t _capacity;
-    std::unordered_map<K, typename std::list<std::pair<K, T>>::iterator> _hashTable;
+
+    HashTable<K, typename std::list<std::pair<K, T>>::iterator> _hashTable;
+    //std::unordered_map<K, typename std::list<std::pair<K, T>>::iterator> _hashTable;
     std::list<std::pair<K, T>> _cacheList;
 
     /** @brief checkCapacityIsZero - Часто надо проверять _capacity, обернул в inline функцию
@@ -201,7 +245,7 @@ private:
      * */
     inline void checkKeyIsFinding( const K& key )
     {
-        if( _hashTable.find( key ) == _hashTable.end() )
+        if( !_hashTable.find(key) )  // _hashTable.find( key ) == _hashTable.end() )
             throw LRUCKeyNotFind();
     }
 public:
@@ -213,13 +257,13 @@ public:
     
     /** @brief Конструктор копирования
      * */
-    LRUCache( const LRUCache<K, T>& rhs ) : _capacity(rhs._capacity), _cacheList(rhs._cacheList),
-        _hashTable(rhs._hashTable) {}
+    //LRUCache( const LRUCache<K, T>& rhs ) : _capacity(rhs._capacity), _cacheList(rhs._cacheList),
+    //    _hashTable(rhs._hashTable) {}
 
     /** @brief Конструктор перемещения
      * */
-    LRUCache( LRUCache<K, T>&& rhs ) : _capacity(rhs._capacity), _cacheList(rhs._cacheList),
-        _hashTable(rhs._hashTable) {}
+    //LRUCache( LRUCache<K, T>&& rhs ) : _capacity(rhs._capacity), _cacheList(rhs._cacheList),
+    //    _hashTable(rhs._hashTable) {}
 
     /** @brief Деструктор
      * */
@@ -331,22 +375,25 @@ public:
     void insert( const K& key, const T& value )
     {
         checkCapacityIsZero();
-
-        if( _hashTable.find( key ) != _hashTable.end() )
+        if( _hashTable.find( key ) ) //!= _hashTable.end() )
         {
-            _hashTable[key]->second = value;
-            _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );
+            //_hashTable[key]->second = value;  //
+            auto it = std::list<std::pair<K, T>>{std::pair<K, T>( key, value )};
+            _hashTable.erase( key );
+            _hashTable.insert( key, it.begin() );
+            _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );  //
         }
         else
         {
             if( _cacheList.size() == _capacity )
             {
                 K lastKey = _cacheList.back().first;
-                _hashTable.erase(lastKey);
+                _hashTable.erase(lastKey); //
                 _cacheList.pop_back();
             }
             _cacheList.emplace_front( key, value );
-            _hashTable[key] = _cacheList.begin();
+            _hashTable.insert( key, _cacheList.begin() );
+            //_hashTable[key] = _cacheList.begin();  //
         }
     }
 
@@ -362,7 +409,7 @@ public:
         checkCapacityIsZero();
 
         _cacheList.erase(*it);
-        _hashTable.erase(*it.first);
+        _hashTable.erase(*it.first);  //
     }
 
     /** @brief erase - удаление элемента по ключу
@@ -372,8 +419,8 @@ public:
         checkCapacityIsZero();
         checkKeyIsFinding( key );
 
-        _cacheList.erase(_hashTable[key]);
-        _hashTable.erase(key);
+        _cacheList.erase( _hashTable[key] );
+        _hashTable.erase( key );  //
     }
 
     //// Lookup
@@ -402,7 +449,7 @@ public:
     T& operator[]( const K& key )
     {
         _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );
-        return (T&)_hashTable[key]->second;
+        return (T&)_hashTable[key]->second;  //
     }
 
     //// other
@@ -452,6 +499,7 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
             }
             catch( const std::exception& emsg )
             {
+                //std::cout << emsg.what() << std::endl;
                 return false;
             };
         }
@@ -469,6 +517,7 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
             }
             catch( const std::exception& emsg )
             {
+                //std::cout << emsg.what() << std::endl;
                 if( testObj._value != -1 )
                 {
                     return false;
@@ -478,6 +527,7 @@ bool TEST_CACHE_PUTaGET( const int& capacity,  // Размер кэша
 
             if( value != testObj._value )
             {
+                //std::cout << "Wait value: " << testObj._value << " in real: " << value << std::endl;
                 return false;
             }
         }
