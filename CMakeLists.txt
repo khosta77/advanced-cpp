@@ -11,5 +11,6 @@ SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 add_executable(
         main.out
         ./project/main.cpp
+        ./project/test.cpp
     )
 
