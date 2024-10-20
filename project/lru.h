@@ -41,7 +41,7 @@ public:
     //// Member functions
     /** @brief Базовый конструктор
      * */
-    LRUCache( const size_t& capacity = 0 ) : _capacity(capacity) {}
+    LRUCache( const size_t& capacity = 0 ) : _capacity(capacity), _hashTable(capacity) {}
     
     /** @brief Конструктор копирования
      * */

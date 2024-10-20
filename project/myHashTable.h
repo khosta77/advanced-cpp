@@ -10,6 +10,25 @@
 #define CELL_DELETE 0x01
 #define CELL_KEY    0x02
 
+/*
+ * Из ТЗ требование к map:
+ * >> map должна быть шаблонной по ключу и значению. По желанию - возможность принять HashT, ComparatorT.
+ * >> внутри мапы должны быть реализованы:
+ *    - итераторы (обычный и const),           -
+ *    - empty(),                               +
+ *    - size(),                                +
+ *    - clear(),                               +
+ *    - reserve(),                             -
+ *    - load_factor(),                         -
+ *    - max_load_factor(),                     -
+ *    - operator[](),                          +
+ *    - find(),                                +
+ *    - count(),                               -
+ *    - insert(),                              +
+ *    - erase() с семантикой, аналогичной STL. -
+ * >> мапа должна верно реализовывать RAII
+ * */
+
 template <typename K, typename T, typename Hash = std::hash<K>>
 class HashTable
 {
@@ -26,6 +45,7 @@ class HashTable
     };
 
     size_t _size;
+    size_t _capacity;
     Hash _hash;
     std::vector<Cell> _table;
 
@@ -131,19 +151,84 @@ class HashTable
     }
 
 public:
-    HashTable() : _size(0)
-    {
-        _table.resize(8);
-    }
+    HashTable( const size_t& capacity ) : _size(0), _capacity(capacity), _table(capacity) {}
 
     ~HashTable()
     {
         _table.clear();
     }
 
+    class iterator
+    {
+        using it = std::vector<std::pair<K, T>>::iterator;
+
+        listIt _it;
+    public:
+        iterator( typename std::vector<Cell>::iterator it, const size_t& position )
+        {
+            for
+        }
+
+        bool operator!=(const iterator& other) const
+        {
+            return _it != other._it;
+        }
+
+        bool operator==(const iterator& other) const
+        {
+            return _it == other._it;
+        }
+
+        iterator& operator++()
+        {
+            ++_it;
+            return *this;
+        }
+
+        iterator operator++(int)
+        {
+            iterator buffer = this;
+            ++_it;
+            return buffer;
+        }
+
+        std::pair<K, T&> operator*()
+        {
+            return { _it->first, (T&)_it->second };
+        }
+    };
+
+    /** @brief begin - метод получения начала итератора
+     * */
+    iterator begin() noexcept
+    {
+        return iterator( _cacheList.begin() );
+    }
+
+    /** @brief end - метод получения конца итератора
+     * */
+    iterator end() noexcept
+    {
+        return iterator( _cacheList.end() );
+    }
+
     bool find( const K& key )
     {
-        return find_A_erase( key, false );
+        const size_t hashValue = _hash( key );
+        size_t hi = ( hashValue % _capacity ), cnt = 0;
+
+        while( ( _table[hi]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
+        {
+            if( ( _table[hi]._key == key ) && ( _table[hi]._state != CELL_DELETE) )
+            {
+                return true;
+            }
+
+            hi = ( ( ++hi ) % _capacity );
+            ++cnt;
+        }
+
+        return false;
     }
 
     bool insert( const K& key, const T& item )
