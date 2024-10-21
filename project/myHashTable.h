@@ -19,11 +19,11 @@
  *    - size(),                                +
  *    - clear(),                               +
  *    - reserve(),                             -
- *    - load_factor(),                         -
- *    - max_load_factor(),                     -
- *    - operator[](),                          +
- *    - find(),                                +
- *    - count(),                               -
+ *    - load_factor(),                         +
+ *    - max_load_factor(),                     +
+ *    - operator[](),                          -
+ *    - find(),                                -
+ *    - count(),                               +
  *    - insert(),                              +
  *    - erase() с семантикой, аналогичной STL. -
  * >> мапа должна верно реализовывать RAII
@@ -45,9 +45,20 @@ class HashTable
     };
 
     size_t _size;
-    size_t _capacity;
-    Hash _hash;
+
+    /* Коэффициент заполнения хеш-таблицы (load factor) вычисляется как отношение числа хранимых элементов
+     * к размеру массива (числу возможных значений хеш-функции). Обозначается как alpha = N/M,
+     * где N — количество элементов в хеш-таблице, M — размер хеш-таблицы.
+     * - Этот коэффициент является важным параметром, от которого зависит среднее время выполнения операций.
+     * - Значение коэффициента говорит о степени заполненности таблицы: 2
+     * Пока коэффициент меньше единицы, в массиве есть свободные элементы, куда теоретически ещё можно
+     * добавить новые ключи.
+     * - Если alpha = 1, то массив заполнен полностью.
+     * - Если же alpha > 1, то число ключей превышает размер хэш-таблицы.
+     * */
+    float _factor;
     std::vector<Cell> _table;
+    Hash _hash;
 
     void reBuild()
     {
@@ -117,7 +128,7 @@ class HashTable
         if( isAdded && find_A_erase( key, false ) )
             return false;
 
-        if( isAdded && ( ( float )_size >= ( 0.75 * ( float )_table.size() ) ) )
+        if( isAdded and ( _factor <= this->load_factor() ) )
             reBuild();
 
         const size_t hashValue = this->_hash( key );
@@ -151,7 +162,8 @@ class HashTable
     }
 
 public:
-    HashTable( const size_t& capacity ) : _size(0), _capacity(capacity), _table(capacity) {}
+    HashTable( const size_t& sizeTable = 4, const float& factor = 0.75 ) : _size(0), 
+        _factor(factor), _table(sizeTable) {}
 
     ~HashTable()
     {
@@ -160,13 +172,13 @@ public:
 
     class iterator
     {
-        using it = std::vector<std::pair<K, T>>::iterator;
+        using It = std::vector<Cell>::iterator;
 
-        listIt _it;
+        It _it;
     public:
-        iterator( typename std::vector<Cell>::iterator it, const size_t& position )
+        iterator( It it )
         {
-            for
+            _it = it;
         }
 
         bool operator!=(const iterator& other) const
@@ -194,7 +206,7 @@ public:
 
         std::pair<K, T&> operator*()
         {
-            return { _it->first, (T&)_it->second };
+            return { *_it._key, (T&)_it._item };
         }
     };
 
@@ -202,20 +214,74 @@ public:
      * */
     iterator begin() noexcept
     {
-        return iterator( _cacheList.begin() );
+        return iterator( _table.begin() );
     }
 
     /** @brief end - метод получения конца итератора
      * */
     iterator end() noexcept
     {
-        return iterator( _cacheList.end() );
+        return iterator( _table.end() );
+    }
+
+    class const_iterator
+    {
+        using const_It = std::vector<Cell>::iterator;
+
+        const_It _it;
+    public:
+        const_iterator( const_It it )
+        {
+            _it = it;
+        }
+
+        bool operator!=(const const_iterator& other) const
+        {
+            return _it != other._it;
+        }
+
+        bool operator==(const const_iterator& other) const
+        {
+            return _it == other._it;
+        }
+
+        const_iterator& operator++()
+        {
+            ++_it;
+            return *this;
+        }
+
+        const_iterator operator++(int)
+        {
+            iterator buffer = this;
+            ++_it;
+            return buffer;
+        }
+
+        const std::pair<K, T> operator*()
+        {
+            return { *_it._key, *_it._item };
+        }
+    };
+
+    /** @brief begin - метод получения начала итератора
+     * */
+    const_iterator cbegin() noexcept
+    {
+        return const_iterator( _table.cbegin() );
+    }
+
+    /** @brief end - метод получения конца итератора
+     * */
+    const_iterator cend() noexcept
+    {
+        return const_iterator( _table.cend() );
     }
 
     bool find( const K& key )
     {
         const size_t hashValue = _hash( key );
-        size_t hi = ( hashValue % _capacity ), cnt = 0;
+        size_t hi = ( hashValue % _table.size() ), cnt = 0;
 
         while( ( _table[hi]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
         {
@@ -224,7 +290,7 @@ public:
                 return true;
             }
 
-            hi = ( ( ++hi ) % _capacity );
+            hi = ( ( ++hi ) % _table.size() );
             ++cnt;
         }
 
@@ -234,8 +300,13 @@ public:
     bool insert( const K& key, const T& item )
     {
         return universalHashTableMethod( key, item, true, false );
-    }    
+    } 
     
+    bool insert( const std::pair<K, T>& pair )
+    {
+        return universalHashTableMethod( pair.first, pair.second, true, false );
+    }
+
     bool erase( const K& key )
     {
         return find_A_erase( key, true );
@@ -263,6 +334,40 @@ public:
         _table.clear();
         _size = 0;
         _table.resize(8);
+    }
+
+    size_t count( const K& key )
+    {
+        const size_t hashValue = _hash( key );
+        size_t hi = ( hashValue % _table.size() ), cnt = 0;
+
+        while( ( _table[hi]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
+        {
+            if( ( _table[hi]._key == key ) && ( _table[hi]._state != CELL_DELETE) )
+            {
+                return 1;
+            }
+
+            hi = ( ( ++hi ) % _table.size() );
+            ++cnt;
+        }
+
+        return 0;
+    }
+
+    float load_factor() const
+    {
+        return ( static_cast<float>(_size) / static_cast<float>( _table.size() ) );
+    }
+
+    float max_load_factor() const
+    {
+        return std::max( _factor, this->load_factor() );
+    }
+
+    void max_load_factor( float ml )
+    {
+        _factor = ml;
     }
 };
 
