@@ -5,7 +5,7 @@
 
 int main( int argc, char* argv[] )
 {
-    HashTable<std::string, int> mt(100);
+    HashTable<std::string, int> mt(1);
     std::cout << "Размер моей таблица: " << mt.size() << std::endl;
     mt.max_load_factor(0.5);
     mt.insert(std::pair<std::string, int>{"a", 1});
@@ -23,7 +23,7 @@ int main( int argc, char* argv[] )
     std::cout << "Мои факторы: " << mt.load_factor() << ' ' << mt.max_load_factor() << std::endl;
     std::cout << mt.size() << std::endl;
 
-    std::unordered_map<std::string, int> st(100);
+    std::unordered_map<std::string, int> st(1);
     std::cout << "Размер STL таблица: " << st.size() << std::endl;
     st.max_load_factor(0.5);
     st.insert(std::pair<std::string, int>{"a", 1});
@@ -42,6 +42,15 @@ int main( int argc, char* argv[] )
     std::cout << "STL факторы: " << st.load_factor() << ' ' << st.max_load_factor() << std::endl;
     std::cout << st.size() << std::endl;
     std::cout << st.count("a") << std::endl;
+    
+    for( auto it = mt.begin(); it != mt.end(); ++it )
+        (*it).second += 1;
+
+    auto mit = mt.begin();
+    auto sit = st.begin();
+    for( ; ( ( mit != mt.end() ) and ( sit != st.end() ) ); ++mit, ++sit )
+        std::cout << (*mit).first << '=' << (*sit).first << '|' << (*mit).second << '=' << (*sit).second << std::endl;
+    std::cout << "Раскладка может отличатся" << std::endl;
     //test();
     return 0;
 }
