@@ -14,15 +14,15 @@
  * Из ТЗ требование к map:
  * >> map должна быть шаблонной по ключу и значению. По желанию - возможность принять HashT, ComparatorT.
  * >> внутри мапы должны быть реализованы:
- *    - итераторы (обычный и const),           -
+ *    - итераторы (обычный и const),           +
  *    - empty(),                               +
  *    - size(),                                +
  *    - clear(),                               +
  *    - reserve(),                             -
  *    - load_factor(),                         +
  *    - max_load_factor(),                     +
- *    - operator[](),                          -
- *    - find(),                                -
+ *    - operator[](),                          +
+ *    - find(),                                +
  *    - count(),                               +
  *    - insert(),                              +
  *    - erase() с семантикой, аналогичной STL. -
@@ -39,9 +39,9 @@ class HashTable
         size_t _hash;
         uint8_t _state;
 
-        Cell() : _hash( 0 ), _state( CELL_EMPTY ) {}
-        Cell( const K& key, const T& item, const size_t& hash ) : _key(key), _item( item ),
-            _hash( hash ), _state( CELL_KEY ) {}
+        Cell() : _hash(0), _state( CELL_EMPTY ) {}
+        Cell( const K& key, const T& item, const size_t& hash ) : _key(key), _item( item ), _hash(hash),
+            _state( CELL_KEY ) {}
     };
 
     size_t _size;
@@ -78,207 +78,160 @@ class HashTable
         buffer.clear();
     }
 
-    /** @brief find_A_erase - концептуально метод схож с universalHashTableMethod, но просто осуществляет
-     *                        поиск или удаление. 
-     * */
-    bool find_A_erase( const K& key, const bool& isDeleted )
-    {
-        const size_t hashValue = this->_hash( key );
-        size_t hash = ( hashValue % _table.size() ), cnt = 0;
-
-        while( ( _table[hash]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
-        {
-            if( ( _table[hash]._key == key ) && ( _table[hash]._state != CELL_DELETE) )
-            {
-                if( isDeleted )
-                    _table[hash]._state = CELL_DELETE;
-                return true;
-            }
-
-            hash = ( ( ++hash ) % _table.size() );
-            ++cnt;
-        }
-
-        return false;
-    }
-
-
-    /** @brief universalHashTableMethod - операции добавления, удаления и поиска элемента +- одинаковые 
-     *                                    по реализации. Решил что лучше будет объединить в один метод.
-     *                                    Чтобы не было большого повторяющегося кода. появлется небольшое
-     *                                    ветвление, но оно выполняется за О(1), так что им можно принебречь.
-     *  @param item - вводимое значение
-     *  @param isAdded - если мы хотим добавить элемент true
-     *  @param isDeleted - если мы хотим удалить true
-     *  +-------+---------+-----------+
-     *  |isAdded|isDeleted| Результат |
-     *  +-------+---------+-----------+
-     *  | fasle | false   | Поиск     |
-     *  +-------+---------+-----------+
-     *  | true  | fasle   | Добавление|
-     *  +-------+---------+-----------+
-     *  | fasle | true    | Удаление  |
-     *  +-------+---------+-----------+
-     *  | true  | true    | Ошибка!!! |
-     *  +-------+---------+-----------+
-     * */
-    bool universalHashTableMethod( const K& key, const T& item, const bool& isAdded, const bool& isDeleted )
-    {
-        // Так как у метода сложность O(1), то вызов его еще раз сделает тогда сложность O(2) -> O(1)
-        if( isAdded && find_A_erase( key, false ) )
-            return false;
-
-        if( isAdded and ( _factor <= this->load_factor() ) )
-            reBuild();
-
-        const size_t hashValue = this->_hash( key );
-        size_t hash = ( hashValue % _table.size() ), cnt = 0;
-
-        // удаленный элемент из ряда идущих элементов
-        std::pair<bool, size_t> deletedItem = std::pair<bool, size_t>( true, 0 );
-
-        while( ( _table[hash]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
-        {
-            if( ( _table[hash]._key == key ) && ( _table[hash]._state != CELL_DELETE) )
-                return ( ( !isAdded ) ? true : false);
-
-            if( isAdded && ( ( _table[hash]._state == CELL_DELETE ) && ( deletedItem.first ) ) )
-            {
-                deletedItem = std::pair<bool, size_t>( false, hash );
-                break;  // Если бы попали на удаленную ячейку, сразу можно выйти
-            }
-
-            hash = ( ( ++hash ) % _table.size() );
-            ++cnt;
-        }
-
-        if( !isAdded )  // Если мы не добавлеям новый элемент, то возвращаем false
-            return false;
-
-        hash = ( ( deletedItem.first ) ? hash : deletedItem.second );
-        _table[hash] = Cell( key, item, hashValue );
-        ++_size;
-        return true;
-    }
-
 public:
     HashTable( const size_t& sizeTable = 4, const float& factor = 0.75 ) : _size(0), 
         _factor(factor), _table(sizeTable) {}
 
     ~HashTable()
     {
-        _table.clear();
+        clear();
     }
 
     class iterator
     {
+    private:
         using It = std::vector<Cell>::iterator;
 
         It _it;
+        It _end;
     public:
-        iterator( It it )
-        {
-            _it = it;
-        }
+        iterator( It it, It end ) : _it(it), _end(end) {}
 
-        bool operator!=(const iterator& other) const
-        {
-            return _it != other._it;
-        }
-
-        bool operator==(const iterator& other) const
-        {
-            return _it == other._it;
-        }
+        bool operator!=(const iterator& other) const { return _it != other._it; }
+        bool operator==(const iterator& other) const { return _it == other._it; }
 
         iterator& operator++()
         {
-            ++_it;
+            do
+            {
+                ++_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
             return *this;
         }
 
         iterator operator++(int)
         {
-            iterator buffer = this;
-            ++_it;
+            iterator buffer;
+            do
+            {
+                buffer = this;
+                ++_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return buffer;
+        }
+
+        iterator& operator--()
+        {
+            do
+            {
+                --_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return *this;
+        }
+
+        iterator operator--(int)
+        {
+            iterator buffer;
+            do
+            {
+                buffer = this;
+                --_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
             return buffer;
         }
 
         std::pair<K, T&> operator*()
-        {
-            return { *_it._key, (T&)_it._item };
+        { 
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) ) { ++_it; }
+            return { (*_it)._key, (T&)(*_it)._item };
         }
     };
 
     /** @brief begin - метод получения начала итератора
      * */
-    iterator begin() noexcept
-    {
-        return iterator( _table.begin() );
-    }
+    iterator begin() noexcept { return iterator( _table.begin(), _table.end() ); }
 
     /** @brief end - метод получения конца итератора
      * */
-    iterator end() noexcept
-    {
-        return iterator( _table.end() );
-    }
+    iterator end() noexcept { return iterator( _table.end(), _table.end() ); }
 
     class const_iterator
     {
+    private:
         using const_It = std::vector<Cell>::iterator;
 
         const_It _it;
+        const_It _end;
     public:
-        const_iterator( const_It it )
-        {
-            _it = it;
-        }
+        const_iterator( const_It it, const_It end ) : _it(it), _end(end) {}
 
-        bool operator!=(const const_iterator& other) const
-        {
-            return _it != other._it;
-        }
-
-        bool operator==(const const_iterator& other) const
-        {
-            return _it == other._it;
-        }
+        bool operator!=(const const_iterator& other) const { return _it != other._it; }
+        bool operator==(const const_iterator& other) const { return _it == other._it; }
 
         const_iterator& operator++()
         {
-            ++_it;
+            do
+            {
+                ++_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
             return *this;
         }
 
         const_iterator operator++(int)
         {
-            iterator buffer = this;
-            ++_it;
+            const_iterator buffer;
+            do
+            {
+                buffer = this;
+                ++_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return buffer;
+        }
+
+        const_iterator& operator--()
+        {
+            do
+            {
+                --_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return *this;
+        }
+
+        const_iterator operator--(int)
+        {
+            const_iterator buffer;
+            do
+            {
+                buffer = this;
+                --_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
             return buffer;
         }
 
         const std::pair<K, T> operator*()
         {
-            return { *_it._key, *_it._item };
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) ) { ++_it; }
+            return { (*_it)._key, (*_it)._item };
         }
     };
 
-    /** @brief begin - метод получения начала итератора
+    /** @brief cbegin - метод получения начала const итератора
      * */
-    const_iterator cbegin() noexcept
-    {
-        return const_iterator( _table.cbegin() );
-    }
+    const_iterator cbegin() noexcept { return const_iterator( _table.cbegin(), _table.cend() ); }
 
-    /** @brief end - метод получения конца итератора
+    /** @brief end - метод получения конца const итератора
      * */
-    const_iterator cend() noexcept
-    {
-        return const_iterator( _table.cend() );
-    }
+    const_iterator cend() noexcept { return const_iterator( _table.cend(), _table.cend() ); }
 
-    bool find( const K& key )
+    std::pair<iterator, bool> find( const K& key )
     {
         const size_t hashValue = _hash( key );
         size_t hi = ( hashValue % _table.size() ), cnt = 0;
@@ -286,54 +239,71 @@ public:
         while( ( _table[hi]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
         {
             if( ( _table[hi]._key == key ) && ( _table[hi]._state != CELL_DELETE) )
-            {
-                return true;
-            }
+                return std::pair<iterator, bool>( iterator( ( _table.begin() + hi ), _table.end() ), false );
 
             hi = ( ( ++hi ) % _table.size() );
             ++cnt;
         }
 
-        return false;
+        return std::pair<iterator, bool>( iterator( _table.end(), _table.end() ), false );
     }
 
-    bool insert( const K& key, const T& item )
+    std::pair<iterator, bool> insert( const K& key, const T& item )
     {
-        return universalHashTableMethod( key, item, true, false );
+        if( ( _factor <= this->load_factor() ) or ( 1.0f == this->load_factor() ) )
+            reBuild();
+
+        const size_t hashValue = this->_hash( key );
+        size_t hash = ( hashValue % _table.size() ), cnt = 0;
+ 
+        while( ( _table[hash]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
+        {
+            if( _table[hash]._state == CELL_DELETE )
+                break;  // Если бы попали на удаленную ячейку, сразу можно выйти
+
+            hash = ( ( ++hash ) % _table.size() );
+            ++cnt;
+        }
+
+        _table[hash] = Cell( key, item, hashValue );
+        ++_size;
+        return std::pair<iterator, bool>( iterator( ( _table.begin() + hash ), _table.end() ), true ); 
     } 
     
-    bool insert( const std::pair<K, T>& pair )
+    std::pair<iterator, bool> insert( const std::pair<K, T>& pair )
     {
-        return universalHashTableMethod( pair.first, pair.second, true, false );
+        return this->insert( pair.first, pair.second );
     }
 
-    bool erase( const K& key )
-    {
-        return find_A_erase( key, true );
-    }
-
-    T& operator[]( const K& key )
+    size_t erase( const K& key )
     {
         const size_t hashValue = this->_hash( key );
-        size_t hash = ( hashValue % _table.size() );
-        return (T&)_table[hash]._item;
+        size_t hash = ( hashValue % _table.size() ), cnt = 0;
+
+        while( ( _table[hash]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
+        {
+            if( ( _table[hash]._key == key ) && ( _table[hash]._state != CELL_DELETE) )
+            {
+                _table[hash]._state = CELL_DELETE;
+                return 1;
+            }
+
+            hash = ( ( ++hash ) % _table.size() );
+            ++cnt;
+        }
+
+        return 0;
     }
 
-    const bool empty() const noexcept
-    {
-        return ( _size == 0 );
-    }
+    T& operator[]( const K& key ) { return (T&) (*(this->find(key).first)).second; }
 
-    const size_t size() const noexcept
-    {
-        return _size;
-    }
+    const bool empty() const noexcept { return ( _size == 0 ); }
+    const size_t size() const noexcept { return _size; }
 
     void clear()
     {
         _table.clear();
         _size = 0;
-        _table.resize(8);
     }
 
     size_t count( const K& key )
@@ -355,20 +325,9 @@ public:
         return 0;
     }
 
-    float load_factor() const
-    {
-        return ( static_cast<float>(_size) / static_cast<float>( _table.size() ) );
-    }
-
-    float max_load_factor() const
-    {
-        return std::max( _factor, this->load_factor() );
-    }
-
-    void max_load_factor( float ml )
-    {
-        _factor = ml;
-    }
+    float load_factor() const { return ( static_cast<float>(_size) / static_cast<float>( _table.size() ) ); }
+    float max_load_factor() const { return std::max( _factor, this->load_factor() ); }
+    void max_load_factor( float ml ) { _factor = ml; }
 };
 
 
