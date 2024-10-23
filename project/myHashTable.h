@@ -14,18 +14,18 @@
  * Из ТЗ требование к map:
  * >> map должна быть шаблонной по ключу и значению. По желанию - возможность принять HashT, ComparatorT.
  * >> внутри мапы должны быть реализованы:
- *    - итераторы (обычный и const),           +
- *    - empty(),                               +
- *    - size(),                                +
+ *    - итераторы (обычный и const),           + +
+ *    - empty(),                               + +
+ *    - size(),                                + +
  *    - clear(),                               +
- *    - reserve(),                             -
+ *    - reserve(),                             +
  *    - load_factor(),                         +
  *    - max_load_factor(),                     +
  *    - operator[](),                          +
- *    - find(),                                +
- *    - count(),                               +
- *    - insert(),                              +
- *    - erase() с семантикой, аналогичной STL. -
+ *    - find(),                                + +
+ *    - count(),                               + +
+ *    - insert(),                              + +
+ *    - erase() с семантикой, аналогичной STL. +
  * >> мапа должна верно реализовывать RAII
  * */
 
@@ -60,25 +60,8 @@ class HashTable
     std::vector<Cell> _table;
     Hash _hash;
 
-    void reBuild()
-    {
-        std::vector<Cell> buffer( ( _table.size() * 2 ) ); 
-        size_t hash = 0, cnt = 0;
-        for( size_t i  = 0; i < _table.size(); ++i )
-        {
-            if( _table[i]._state == CELL_KEY )
-            {
-                hash = ( _table[i]._hash % buffer.size() );
-                while( cnt = 0, buffer[hash]._state != CELL_EMPTY )
-                    hash = ( ( hash + ++cnt ) % buffer.size() );
-                buffer[hash] = _table[i];
-            }
-        }
-        _table = std::move( buffer );
-        buffer.clear();
-    }
-
 public:
+    //// Member functions
     HashTable( const size_t& sizeTable = 4, const float& factor = 0.75 ) : _size(0), 
         _factor(factor), _table(sizeTable) {}
 
@@ -87,6 +70,7 @@ public:
         clear();
     }
 
+    //// Iterators
     class iterator
     {
     private:
@@ -150,14 +134,6 @@ public:
             return { (*_it)._key, (T&)(*_it)._item };
         }
     };
-
-    /** @brief begin - метод получения начала итератора
-     * */
-    iterator begin() noexcept { return iterator( _table.begin(), _table.end() ); }
-
-    /** @brief end - метод получения конца итератора
-     * */
-    iterator end() noexcept { return iterator( _table.end(), _table.end() ); }
 
     class const_iterator
     {
@@ -223,35 +199,42 @@ public:
         }
     };
 
+    /** @brief begin - метод получения начала итератора
+     * */
+    iterator begin() noexcept { return iterator( _table.begin(), _table.end() ); }
+
     /** @brief cbegin - метод получения начала const итератора
      * */
     const_iterator cbegin() noexcept { return const_iterator( _table.cbegin(), _table.cend() ); }
+
+    /** @brief end - метод получения конца итератора
+     * */
+    iterator end() noexcept { return iterator( _table.end(), _table.end() ); }
 
     /** @brief end - метод получения конца const итератора
      * */
     const_iterator cend() noexcept { return const_iterator( _table.cend(), _table.cend() ); }
 
-    std::pair<iterator, bool> find( const K& key )
+    //// Capacity
+    /** // TODO: Описание ???
+     * */
+    const bool empty() const noexcept { return ( _size == 0 ); }
+
+    /** // TODO: Описание ???
+     * */
+    const size_t size() const noexcept { return _size; }
+
+    //// Modifiers
+    void clear()
     {
-        const size_t hashValue = _hash( key );
-        size_t hi = ( hashValue % _table.size() ), cnt = 0;
-
-        while( ( _table[hi]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
-        {
-            if( ( _table[hi]._key == key ) && ( _table[hi]._state != CELL_DELETE) )
-                return std::pair<iterator, bool>( iterator( ( _table.begin() + hi ), _table.end() ), false );
-
-            hi = ( ( ++hi ) % _table.size() );
-            ++cnt;
-        }
-
-        return std::pair<iterator, bool>( iterator( _table.end(), _table.end() ), false );
+        _table.clear();
+        _size = 0;
     }
 
     std::pair<iterator, bool> insert( const K& key, const T& item )
     {
         if( ( _factor <= this->load_factor() ) or ( 1.0f == this->load_factor() ) )
-            reBuild();
+            this->reserve( _table.size() * 2 );  // reBuild();
 
         const size_t hashValue = this->_hash( key );
         size_t hash = ( hashValue % _table.size() ), cnt = 0;
@@ -275,6 +258,8 @@ public:
         return this->insert( pair.first, pair.second );
     }
 
+    /** @brief erase - Удаление по ключу, возвращает 1 если элемент был удален, 0 если ничего не произошло
+     * */
     size_t erase( const K& key )
     {
         const size_t hashValue = this->_hash( key );
@@ -295,16 +280,30 @@ public:
         return 0;
     }
 
-    T& operator[]( const K& key ) { return (T&) (*(this->find(key).first)).second; }
-
-    const bool empty() const noexcept { return ( _size == 0 ); }
-    const size_t size() const noexcept { return _size; }
-
-    void clear()
+    //// Lookup
+    T& at( const K& key )
     {
-        _table.clear();
-        _size = 0;
+        const size_t hashValue = _hash( key );
+        size_t hi = ( hashValue % _table.size() ), cnt = 0;
+
+        while( ( _table[hi]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
+        {
+            if( ( _table[hi]._key == key ) && ( _table[hi]._state != CELL_DELETE) )
+                return (T&)_table[hi]._item;
+
+            hi = ( ( ++hi ) % _table.size() );
+            ++cnt;
+        }
+
+        throw;  // TODO: Придумать ошибку
     }
+    
+    const T& at( const K& key ) const
+    {
+        return this->at(key);
+    }
+    
+    T& operator[]( const K& key ) { return (T&) (*(this->find(key).first)).second; }
 
     size_t count( const K& key )
     {
@@ -325,10 +324,56 @@ public:
         return 0;
     }
 
-    float load_factor() const { return ( static_cast<float>(_size) / static_cast<float>( _table.size() ) ); }
-    float max_load_factor() const { return std::max( _factor, this->load_factor() ); }
-    void max_load_factor( float ml ) { _factor = ml; }
-};
+    iterator find( const K& key )
+    {
+        const size_t hashValue = _hash( key );
+        size_t hi = ( hashValue % _table.size() ), cnt = 0;
 
+        while( ( _table[hi]._state != CELL_EMPTY ) && ( cnt < _table.size() ) )
+        {
+            if( ( _table[hi]._key == key ) && ( _table[hi]._state != CELL_DELETE) )
+                return iterator( ( _table.begin() + hi ), _table.end() );
+
+            hi = ( ( ++hi ) % _table.size() );
+            ++cnt;
+        }
+
+        return iterator( _table.end(), _table.end() );
+    }
+
+    //// Hash policy
+    /** @brief load_factor - возвращает коэффицент загруженности таблицы
+     * */
+    float load_factor() const { return ( static_cast<float>(_size) / static_cast<float>( _table.size() ) ); }
+
+    float max_load_factor() const { return std::max( _factor, this->load_factor() ); }
+    
+    void max_load_factor( float ml ) { _factor = ml; }
+
+    /** @brief reserve - в оригинальном STL если значение меньше _table.size() -> ничего не происходит
+     * */
+    void reserve( const size_t& count )
+    {
+        if( count <= _table.size() )
+            return;
+
+        std::vector<Cell> buffer( count ); 
+        for( size_t i  = 0, hash = 0, cnt = 0; i < _table.size(); ++i )
+        {
+            if( _table[i]._state == CELL_KEY )
+            {
+                hash = ( _table[i]._hash % buffer.size() );
+                while( cnt = 0, buffer[hash]._state != CELL_EMPTY )
+                {
+                    hash = ( ( hash + ++cnt ) % buffer.size() );
+                }
+                buffer[hash] = _table[i];
+            }
+        }
+        _table = std::move( buffer );
+        buffer.clear();
+    }
+
+};
 
 #endif  // CPP_COURSE_PROJECT_MYHASHTABLE_H_
