@@ -17,15 +17,15 @@
  *    - итераторы (обычный и const),           + +
  *    - empty(),                               + +
  *    - size(),                                + +
- *    - clear(),                               +
- *    - reserve(),                             +
- *    - load_factor(),                         +
- *    - max_load_factor(),                     +
- *    - operator[](),                          +
+ *    - clear(),                               + +
+ *    - reserve(),                             + +
+ *    - load_factor(),                         + +
+ *    - max_load_factor(),                     + +
+ *    - operator[](),                          + +
  *    - find(),                                + +
  *    - count(),                               + +
  *    - insert(),                              + +
- *    - erase() с семантикой, аналогичной STL. +
+ *    - erase() с семантикой, аналогичной STL. + +
  * >> мапа должна верно реализовывать RAII
  * */
 
@@ -59,16 +59,19 @@ class HashTable
     float _factor;
     std::vector<Cell> _table;
     Hash _hash;
+    size_t _count;
 
 public:
     //// Member functions
-    HashTable( const size_t& sizeTable = 4, const float& factor = 0.75 ) : _size(0), 
-        _factor(factor), _table(sizeTable) {}
+    HashTable( const size_t& sizeTable = 4, const float& factor = 1.0 ) : _size(0), 
+        _factor(factor), _table(sizeTable), _count(0) {}
 
-    ~HashTable()
-    {
-        clear();
-    }
+    HashTable( const HashTable<K, T, Hash>& rhs ) : _size(rhs._size), _factor(rhs._factor),
+        _table(rhs._table) {}
+    
+    HashTable( HashTable<K, T, Hash>&& rhs ) : _size(rhs._size), _factor(rhs._factor), _table(rhs._table) {}
+
+    ~HashTable() { clear(); }
 
     //// Iterators
     class iterator
@@ -229,6 +232,7 @@ public:
     {
         _table.clear();
         _size = 0;
+        _count = 0;
     }
 
     std::pair<iterator, bool> insert( const K& key, const T& item )
@@ -303,7 +307,7 @@ public:
         return this->at(key);
     }
     
-    T& operator[]( const K& key ) { return (T&) (*(this->find(key).first)).second; }
+    T& operator[]( const K& key ) { return (T&) (*this->find(key)).second; }
 
     size_t count( const K& key )
     {
@@ -344,7 +348,15 @@ public:
     //// Hash policy
     /** @brief load_factor - возвращает коэффицент загруженности таблицы
      * */
-    float load_factor() const { return ( static_cast<float>(_size) / static_cast<float>( _table.size() ) ); }
+    float load_factor() const
+    {
+        if( _size == 0 )
+            return 0.0f;
+        
+        if( _count < _size )
+            return 1.0f;
+        return ( static_cast<float>(_size) / static_cast<float>( _table.size() ) );
+    }
 
     float max_load_factor() const { return std::max( _factor, this->load_factor() ); }
     
@@ -354,9 +366,9 @@ public:
      * */
     void reserve( const size_t& count )
     {
+        _count = count;
         if( count <= _table.size() )
             return;
-
         std::vector<Cell> buffer( count ); 
         for( size_t i  = 0, hash = 0, cnt = 0; i < _table.size(); ++i )
         {
