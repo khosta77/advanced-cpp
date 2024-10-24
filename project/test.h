@@ -20,4 +20,6 @@ extern std::vector<TestObj> ManyDoubleElement;
 bool TEST_CACHE_PUTaGET( const int& capacity, std::vector<TestObj>& testScript );
 void test();
 
+
+
 #endif  // CPP_COURSE_TEST_H_
