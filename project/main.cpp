@@ -1,7 +1,208 @@
 //#include "test.h"
 
 #include "myHashTable.h"
-#include <unordered_map>
+//#include <unordered_map>
+
+#include <list>
+
+/*
+ * Из ТЗ требование к list:
+ * >> список, очевидно, будет шаблонным. Можно вдохновляться
+ *    https://www.boost.org/doc/libs/1_67_0/doc/html/intrusive/list.html ,
+ *    который "using the public member hook...".
+ * >> внутри списка должны быть:
+ *    - реализованы итераторы (обычный и const), -
+ *    - empty(),                                 -
+ *    - size(),                                  -
+ *    - clear(),                                 -
+ *    - front(),                                 -
+ *    - back(),                                  -
+ *    - push/pop_front(),                        -
+ *    - push/pop_back(),                         -
+ *    - insert(),                                -
+ *    - splice() с семантикой, аналогичной STL.  -
+ * */
+template<typename T>
+class List
+{
+private:
+    
+public:
+    //// Member functions
+    List() : {}
+    ~List()
+
+    //// Element access
+    T& front() {}
+
+    T& back() {}
+
+    //// Iterators
+    class iterator
+    {
+    private:
+        using It = std::vector<Cell>::iterator;
+
+        It _it;
+        It _end;
+    public:
+        iterator( It it, It end ) : _it(it), _end(end) {}
+
+        bool operator!=(const iterator& other) const { return _it != other._it; }
+        bool operator==(const iterator& other) const { return _it == other._it; }
+
+        iterator& operator++()
+        {
+            do
+            {
+                ++_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return *this;
+        }
+
+        iterator operator++(int)
+        {
+            iterator buffer;
+            do
+            {
+                buffer = this;
+                ++_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return buffer;
+        }
+
+        iterator& operator--()
+        {
+            do
+            {
+                --_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return *this;
+        }
+
+        iterator operator--(int)
+        {
+            iterator buffer;
+            do
+            {
+                buffer = this;
+                --_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return buffer;
+        }
+
+        std::pair<K, T&> operator*()
+        { 
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) ) { ++_it; }
+            return { (*_it)._key, (T&)(*_it)._item };
+        }
+    };
+
+    class const_iterator
+    {
+    private:
+        using const_It = std::vector<Cell>::iterator;
+
+        const_It _it;
+        const_It _end;
+    public:
+        const_iterator( const_It it, const_It end ) : _it(it), _end(end) {}
+
+        bool operator!=(const const_iterator& other) const { return _it != other._it; }
+        bool operator==(const const_iterator& other) const { return _it == other._it; }
+
+        const_iterator& operator++()
+        {
+            do
+            {
+                ++_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return *this;
+        }
+
+        const_iterator operator++(int)
+        {
+            const_iterator buffer;
+            do
+            {
+                buffer = this;
+                ++_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return buffer;
+        }
+
+        const_iterator& operator--()
+        {
+            do
+            {
+                --_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return *this;
+        }
+
+        const_iterator operator--(int)
+        {
+            const_iterator buffer;
+            do
+            {
+                buffer = this;
+                --_it;
+            }
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            return buffer;
+        }
+
+        const std::pair<K, T> operator*()
+        {
+            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) ) { ++_it; }
+            return { (*_it)._key, (*_it)._item };
+        }
+    };
+
+    /** @brief begin - метод получения начала итератора
+     * */
+    iterator begin() noexcept { return iterator( _table.begin(), _table.end() ); }
+
+    /** @brief cbegin - метод получения начала const итератора
+     * */
+    const_iterator cbegin() noexcept { return const_iterator( _table.cbegin(), _table.cend() ); }
+
+    /** @brief end - метод получения конца итератора
+     * */
+    iterator end() noexcept { return iterator( _table.end(), _table.end() ); }
+
+    /** @brief end - метод получения конца const итератора
+     * */
+    const_iterator cend() noexcept { return const_iterator( _table.cend(), _table.cend() ); }
+
+    //// Capacity
+    bool empty() {}
+
+    size_t size() {}
+
+    //// Modifiers
+    void clear() {}
+
+    iterator insert() {}
+
+    void push_front() {}
+
+    void push_back() {}
+
+    void pop_front() {}
+
+    void pop_back() {}
+    
+    //// Operations
+    void splice() {}
+};
 
 class TestException : std::exception 
 {
@@ -13,7 +214,23 @@ public:
     const char *what() const noexcept override { return emsg.c_str(); }
 };
 
+namespace ListTestSpace
+{
+    
+    void test()
+    {
+        
+    }
+};
 
+int main( int argc, char* argv[] )
+{
+    //HashTestSpace::test();
+    ListTestSpace::test();
+    return 0;
+}
+
+#if 0
 namespace HashTestSpace
 {
     class TableEmptyButNotMustbeEmpty : public TestException
@@ -187,7 +404,7 @@ namespace HashTestSpace
 
             for( const auto& [ key, value ] : frame )
                 table.insert( std::pair<std::string, int>{ key, value } );
-            
+
             table.reserve(0);
             if( table.load_factor() != 1.0f )
                 throw ReserveProblem();
@@ -218,11 +435,6 @@ namespace HashTestSpace
         };
     }
 };
-
-int main( int argc, char* argv[] )
-{
-    HashTestSpace::test();
-    return 0;
-}
+#endif
 
 
