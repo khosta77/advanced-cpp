@@ -4,6 +4,7 @@
 //#include <unordered_map>
 
 #include <list>
+#include <stack>
 
 /*
  * Из ТЗ требование к list:
@@ -26,182 +27,232 @@ template<typename T>
 class List
 {
 private:
+    size_t _size;
+
+    struct Node
+    {
+        T _value;
+        Node* _next;
+        Node* _prev;
+
+        Node( const T& value, Node* next, Node* prev ) : _value(value), _next(next), _prev(prev) {}
+    };
+
+    Node* _head;
+    Node* _tail;
     
 public:
     //// Member functions
-    List() : {}
+    List() : _size(0), _head(nullptr), _tail(nullptr) {}
+
     ~List()
+    {
+        clear();
+    }
 
     //// Element access
-    T& front() {}
+    T& front() { return (T&)_head->_value; }
 
-    T& back() {}
+    T& back() { return (T&)_tail->_value; }
 
     //// Iterators
     class iterator
     {
     private:
-        using It = std::vector<Cell>::iterator;
+        using It = Node*;
 
         It _it;
-        It _end;
     public:
-        iterator( It it, It end ) : _it(it), _end(end) {}
+        iterator( Node* node ) : _it(node) {}
 
-        bool operator!=(const iterator& other) const { return _it != other._it; }
-        bool operator==(const iterator& other) const { return _it == other._it; }
+        bool operator!=( const iterator& other ) const
+        {
+            return ( _it->_value != other._it->_value );
+        }
+        
+        bool operator==( const iterator& other ) const
+        {
+            return ( _it->_value == other._it->_value );
+        }
 
         iterator& operator++()
         {
-            do
-            {
-                ++_it;
-            }
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            _it = _it->_next;
             return *this;
         }
 
         iterator operator++(int)
         {
-            iterator buffer;
-            do
-            {
-                buffer = this;
-                ++_it;
-            }
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            iterator buffer = this;
+            _it = _it->_next;
             return buffer;
         }
 
         iterator& operator--()
         {
-            do
-            {
-                --_it;
-            }
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            _it = _it->_prev;
             return *this;
         }
-
+        
         iterator operator--(int)
         {
-            iterator buffer;
-            do
-            {
-                buffer = this;
-                --_it;
-            }
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
+            iterator buffer = this;
+            _it = _it->_prev;
             return buffer;
         }
-
-        std::pair<K, T&> operator*()
-        { 
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) ) { ++_it; }
-            return { (*_it)._key, (T&)(*_it)._item };
+        
+        T& operator*()
+        {
+            return (T&)_it->_value;
         }
     };
 
+#if 0
     class const_iterator
     {
     private:
         using const_It = std::vector<Cell>::iterator;
 
-        const_It _it;
-        const_It _end;
     public:
-        const_iterator( const_It it, const_It end ) : _it(it), _end(end) {}
+        const_iterator() : {}
 
-        bool operator!=(const const_iterator& other) const { return _it != other._it; }
-        bool operator==(const const_iterator& other) const { return _it == other._it; }
+        bool operator!=(const const_iterator& other) const {}
+        bool operator==(const const_iterator& other) const {}
 
-        const_iterator& operator++()
-        {
-            do
-            {
-                ++_it;
-            }
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
-            return *this;
-        }
-
-        const_iterator operator++(int)
-        {
-            const_iterator buffer;
-            do
-            {
-                buffer = this;
-                ++_it;
-            }
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
-            return buffer;
-        }
-
-        const_iterator& operator--()
-        {
-            do
-            {
-                --_it;
-            }
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
-            return *this;
-        }
-
-        const_iterator operator--(int)
-        {
-            const_iterator buffer;
-            do
-            {
-                buffer = this;
-                --_it;
-            }
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) );
-            return buffer;
-        }
-
-        const std::pair<K, T> operator*()
-        {
-            while( ( ( (*_it)._state != CELL_KEY ) and ( _it != _end ) ) ) { ++_it; }
-            return { (*_it)._key, (*_it)._item };
-        }
+        const_iterator& operator++() {}
+        const_iterator operator++(int) {}
+        const_iterator& operator--() {}
+        const_iterator operator--(int) {}
+        const T operator*() {}
     };
+#endif
 
     /** @brief begin - метод получения начала итератора
      * */
-    iterator begin() noexcept { return iterator( _table.begin(), _table.end() ); }
+    iterator begin() noexcept
+    {
+        return iterator(_head);
+    }
 
+#if 0
     /** @brief cbegin - метод получения начала const итератора
      * */
-    const_iterator cbegin() noexcept { return const_iterator( _table.cbegin(), _table.cend() ); }
+    const_iterator cbegin() noexcept {}
+#endif
 
     /** @brief end - метод получения конца итератора
      * */
-    iterator end() noexcept { return iterator( _table.end(), _table.end() ); }
+    iterator end() noexcept
+    {
+        return iterator(nullptr);
+    }
 
+#if 0
     /** @brief end - метод получения конца const итератора
      * */
-    const_iterator cend() noexcept { return const_iterator( _table.cend(), _table.cend() ); }
+    const_iterator cend() noexcept {}
+#endif
 
     //// Capacity
-    bool empty() {}
+    bool empty() const
+    {
+        return ( ( _head == nullptr ) and ( _tail == nullptr ) ); }
 
-    size_t size() {}
+    size_t size() const { return _size; }
 
     //// Modifiers
-    void clear() {}
+    void clear()
+    {
+        std::stack<Node*> nodes;
+        nodes.push(_head);
+        while( _head->_next )
+        {
+            _head = _head->_next;
+            nodes.push(_head);
+        }
 
-    iterator insert() {}
+        while( !nodes.empty() )
+        {
+            delete nodes.top();
+            nodes.pop();
+        }
 
-    void push_front() {}
+        _head = nullptr;
+        _tail = nullptr;
+    }
 
-    void push_back() {}
+    //iterator insert() {}
 
-    void pop_front() {}
+private:
+    void push_first_element( const T& value )
+    {
+        Node* node = new Node( value, nullptr, nullptr );
+        _head = _tail = node;
+        ++_size;
+    }
 
-    void pop_back() {}
-    
+public:
+    void push_front( const T& value )
+    {
+        if( _size == 0 )
+            return push_first_element( value );
+        
+        Node* node = new Node( value, _head, nullptr );
+        _head->_prev = node;
+        _head = node;
+        ++_size;
+    }
+
+    void push_back( const T& value )
+    {
+        if( _size == 0 )
+            return push_first_element( value );
+        
+        Node* node = new Node( value, nullptr, _tail );
+        _tail->_next = node;
+        _tail = node;
+        ++_size;
+    }
+
+private:
+    void pop_last_element()
+    {
+        delete _head;
+        _head = _tail = nullptr;
+        ++_size;
+    }
+
+public:
+    void pop_front()
+    {
+        if( _size == 0 )
+            return;
+        
+        if( _size == 1 )
+            return pop_last_element();
+
+        Node* node = _head;
+        _head = _head->_next;
+        _head->_prev = nullptr;
+        delete node;
+    }
+
+    void pop_back()
+    {
+        if( _size == 0 )
+            return;
+        
+        if( _size == 1 )
+            return pop_last_element();
+
+        Node* node = _tail;
+        _tail = _tail->_prev;
+        _tail->_next = nullptr;
+        delete node;
+    }
+
     //// Operations
-    void splice() {}
+    //void splice() {}
 };
 
 class TestException : std::exception 
@@ -216,10 +267,134 @@ public:
 
 namespace ListTestSpace
 {
+    class ListEmpty : public TestException
+    {
+    public:
+        ListEmpty() : TestException("Список пустой!!!") {}
+    };
+
+    class ListNotEmpty : public TestException
+    {
+    public:
+        ListNotEmpty() : TestException("Список не пустой!!!") {}
+    };
+
+    class ListSizeNotExpected : public TestException
+    {
+    public:
+        ListSizeNotExpected( const size_t& size, const size_t& expected ) : TestException(
+                ( "list.size() = " + std::to_string(size) + " not excepted: " + std::to_string(expected) )
+            ) {}
+    };
+
+    class ListFrontNotLink : public TestException
+    {
+    public:
+        ListFrontNotLink() : TestException("C front что-то не так!!!") {}
+    };
+
+    class ListBackNotLink : public TestException
+    {
+    public:
+        ListBackNotLink() : TestException("C front что-то не так!!!") {}
+    };
+
+    class ListNotExceptedElement : public TestException
+    {
+    public:
+        ListNotExceptedElement( const std::string& felem, const std::string& efelem,
+                                const std::string& belem, const std::string& ebelem ) : TestException(
+                ( "front( " + felem + " ) -> " + efelem + " | back( " + belem + " ) -> " + ebelem )
+            ) {}
+    };
     
+    namespace check
+    {
+        std::vector<int> frame = {
+            -3, -2, -1, 0, 1, 2, 3 
+        };
+
+        template<typename T>
+        void front_and_back()
+        {
+            T lst;
+            // Проверка вообще есть ли элементы уже
+            if( !lst.empty() )
+                throw ListNotEmpty();
+
+            // Проверка размера
+            if( lst.size() != 0 )
+                throw ListSizeNotExpected( lst.size(), 0 );
+
+            // Добавляем первый элемент
+            lst.push_back(frame[4]);
+            if( ( ( lst.front() != frame[4] ) or ( lst.back() != frame[4] ) ) )
+                throw ListNotExceptedElement( std::to_string( lst.front() ), std::to_string( frame[4] ),
+                                              std::to_string( lst.back() ), std::to_string( frame[4] ) );
+
+            // Если список все еще пустой -> ошибка
+            if( lst.empty() )
+                throw ListEmpty();
+
+            // Размер должен быть 1
+            if( lst.size() != 1 )
+                throw ListSizeNotExpected( lst.size(), 1 );
+
+            // Проверяем ссылочность front
+            lst.front() = 1;
+            if( ( ( lst.front() != 1 ) or ( lst.back() != 1 ) ) )
+                throw ListFrontNotLink();
+
+            // Проверяем ссылочность back
+            lst.back() = -1;
+            if( ( ( lst.front() != -1 ) or ( lst.back() != -1 ) ) )
+                throw ListBackNotLink();
+            lst.back() = frame[4];
+
+            // Проверяем заполнение вектора
+            for( size_t i = 3, j = 5, count = 1; j < frame.size(); --i, ++j )
+            {
+                lst.push_front(frame[i]);
+                lst.push_back(frame[j]);
+                count += 2;
+
+                // Проверка корректных значений
+                if( ( ( lst.front() != frame[i] ) or ( lst.back() != frame[j] ) ) )
+                    throw ListNotExceptedElement( std::to_string( lst.front() ), std::to_string( frame[i] ),
+                                                  std::to_string( lst.back() ), std::to_string( frame[j] ) );
+
+                // Проверка размера
+                if( lst.size() != count )
+                    throw ListSizeNotExpected( lst.size(), count );
+            }
+        }
+
+    };
+
     void test()
     {
-        
+        using mylist = List<int>;
+        using stdlist = std::list<int>;
+
+        try
+        {
+            check::front_and_back<mylist>();
+            check::front_and_back<stdlist>();
+        }
+        catch( const TestException& emsg )
+        {
+            std::cout << emsg.what() << std::endl;
+        };
+
+#if 0
+        List<int> ml;
+        ml.push_back(1);
+        std::cout << ml.front() << ' ' << ml.back() << std::endl;
+        ml.push_back(2);
+        std::cout << ml.front() << ' ' << ml.back() << std::endl;
+        ml.push_back(3);
+        std::cout << ml.front() << ' ' << ml.back() << std::endl;
+#endif
     }
 };
 
