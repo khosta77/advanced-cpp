@@ -20,12 +20,16 @@
  *    - back(),                                  +
  *    - push/pop_front(),                        +
  *    - push/pop_back(),                         +
- *    - insert(),                                -
+ *    - insert(),                                +
  *    - splice() с семантикой, аналогичной STL.  -
  * */
 template<typename T>
 class List
 {
+public:
+    class iterator;
+    class const_iterator;
+
 private:
     size_t _size;
 
@@ -40,7 +44,10 @@ private:
 
     Node* _head;
     Node* _tail;
-    
+
+    friend class iterator;
+    friend class const_iterator;
+
 public:
     //// Member functions
     List() : _size(0), _head(nullptr), _tail(nullptr) {}
@@ -60,6 +67,8 @@ public:
 
         It _it;
         bool _isEnd;
+
+        friend class List;
     public:
         iterator( Node* node, const bool& isEnd = false ) : _it(node), _isEnd(isEnd) {}
 
@@ -285,7 +294,35 @@ public:
         _size = 0;
     }
 
-    //iterator insert() {}
+    iterator insert( iterator pos, const T& value )
+    {
+        if( pos._it == nullptr )
+        {
+            this->push_front(value);
+            return this->begin();
+        }
+        
+        Node* node = new Node( value, nullptr, nullptr );
+
+        if( pos._it == _head )
+        {
+            node->_next = _head;
+            _head->_prev = node;
+            _head = node;
+        }
+        else
+        {
+            node->_prev = pos._it->_prev;
+            node->_next = pos._it;
+
+            if( pos._it->_prev )
+                pos._it->_prev->_next = node;
+            
+            pos._it->_prev = node;
+        }
+
+        return iterator(node);
+    }
 
 private:
     void push_first_element( const T& value )
@@ -649,6 +686,20 @@ namespace ListTestSpace
             }
         }
 
+        template<typename T>
+        void insert()
+        {
+            T lst;
+            auto it = lst.begin();
+            for( size_t i = 0; i < frame.size(); ++i )
+            {
+                it = lst.insert( it, frame[i] );
+                if( *it != frame[i] )
+                    throw ListNotCurrentValue( *it, frame[i] );
+            }
+        }
+
+
     };
 
     void test()
@@ -662,6 +713,8 @@ namespace ListTestSpace
             check::front_and_back<stdlist>();
             check::inter<mylist>();
             check::inter<stdlist>();
+            check::insert<mylist>();
+            check::insert<stdlist>();
         }
         catch( const TestException& emsg )
         {
