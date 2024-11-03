@@ -1,5 +1,5 @@
-#ifndef CPP_COURSE_PROJECT_MYHASHTABLE_H_
-#define CPP_COURSE_PROJECT_MYHASHTABLE_H_
+#ifndef CPP_COURSE_PROJECT_HASHTABLE_H_
+#define CPP_COURSE_PROJECT_HASHTABLE_H_
 
 #include <iostream>
 #include <list>
@@ -388,4 +388,4 @@ public:
 
 };
 
-#endif  // CPP_COURSE_PROJECT_MYHASHTABLE_H_
+#endif  // CPP_COURSE_PROJECT_HASHTABLE_H_
