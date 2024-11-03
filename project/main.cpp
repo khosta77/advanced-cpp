@@ -4,7 +4,6 @@
 //#include <unordered_map>
 
 #include <list>
-#include <stack>
 
 /*
  * Из ТЗ требование к list:
@@ -21,7 +20,7 @@
  *    - push/pop_front(),                        +
  *    - push/pop_back(),                         +
  *    - insert(),                                +
- *    - splice() с семантикой, аналогичной STL.  -
+ *    - splice() с семантикой, аналогичной STL.  +
  * */
 template<typename T>
 class List
@@ -85,7 +84,7 @@ public:
             return false;
         }
         
-        bool operator==( const iterator& rhs ) const { return !( this != rhs ); }
+        bool operator==( const iterator& rhs ) const { return !( iterator( _it, _isEnd ) != rhs ); }
 
         iterator& operator++()
         {
@@ -181,7 +180,7 @@ public:
             return false;
         }
         
-        bool operator==( const const_iterator& rhs ) const { return !( this != rhs ); }
+        bool operator==( const const_iterator& rhs ) const { return !( const_iterator( _it, _isEnd ) != rhs ); }
 
         const_iterator& operator++()
         {
@@ -396,28 +395,40 @@ public:
         delete node;
     }
 
-#if 1
-    void print()
-    {
-        Node* node = _head;
-        while( node )
-        {
-            std::cout << node->_value << '\t';
-            node = node->_next;
-        }
-        std::cout << std::endl;
-        node = _tail;
-        while( node )
-        {
-            std::cout << node->_value << '\t';
-            node = node->_prev;
-        }
-        std::cout << std::endl;
-        std::cout << std::endl;
-    }
-#endif
     //// Operations
-    //void splice() {}
+    void splice( iterator pos, List& other, iterator it )
+    {
+        if( ( it._it == nullptr ) || ( other.empty() ) )
+            return;
+
+        Node* nodeToMove = it._it;
+        Node* prevNode = nodeToMove->_prev;
+        Node* nextNode = nodeToMove->_next;
+
+        if(prevNode)
+            prevNode->_next = nextNode;
+        if(nextNode)
+            nextNode->_prev = prevNode;
+
+        if( other._head == nodeToMove )
+            other._head = nextNode;
+        if( other._tail == nodeToMove )
+            other._tail = prevNode;
+
+        Node* posNode = pos._it;
+        nodeToMove->_prev = posNode->_prev;
+        nodeToMove->_next = posNode;
+
+        if( posNode->_prev )
+            posNode->_prev->_next = nodeToMove;
+        posNode->_prev = nodeToMove;
+
+        if( posNode == _head )
+            _head = nodeToMove;
+
+        --other._size;
+        ++_size;
+    }
 };
 
 class TestException : std::exception 
@@ -698,8 +709,47 @@ namespace ListTestSpace
                     throw ListNotCurrentValue( *it, frame[i] );
             }
         }
+ 
+        void splice()
+        {
+            List<int> lst1;
+            List<int> lst2;
+            lst2.push_back(10);
+            lst2.push_back(20);
+            lst2.push_back(30);
 
+            lst1.push_back(frame[MIDDLE]);
+            for( size_t i = ( MIDDLE - 1 ), j = ( MIDDLE + 1 ); j < frame.size(); --i, ++j )
+            {
+                lst1.push_front(frame[i]);
+                lst1.push_back(frame[j]);
+            }
 
+            auto it = ++(lst1.begin());
+            lst1.splice( it, lst2, lst2.begin() );
+
+            std::list<int> list1{ -3, -2, -1, 0, 1, 2, 3};
+            std::list<int> list2{ 10, 20, 30 };
+
+            auto it_ = ++(list1.begin());
+            list1.splice( it_, list2, list2.begin() );
+
+            auto stdIt1 = list1.begin();
+            auto myIt1 = lst1.begin();
+            for( size_t i = 0; i < lst1.size(); ++i, ++stdIt1, ++myIt1 )
+            {
+                if( *stdIt1 != *myIt1 )
+                    throw ListNotCurrentValue( *stdIt1, *myIt1 );
+            }
+
+            auto stdIt2 = list2.begin();
+            auto myIt2 = lst2.begin();
+            for( size_t i = 0; i < lst2.size(); ++i, ++stdIt2, ++myIt2 )
+            {
+                if( *stdIt2 != *myIt2 )
+                    throw ListNotCurrentValue( *stdIt2, *myIt2 );
+            }
+        }
     };
 
     void test()
@@ -715,6 +765,7 @@ namespace ListTestSpace
             check::inter<stdlist>();
             check::insert<mylist>();
             check::insert<stdlist>();
+            check::splice();
         }
         catch( const TestException& emsg )
         {
