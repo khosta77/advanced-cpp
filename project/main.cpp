@@ -12,7 +12,7 @@
  *    https://www.boost.org/doc/libs/1_67_0/doc/html/intrusive/list.html ,
  *    который "using the public member hook...".
  * >> внутри списка должны быть:
- *    - реализованы итераторы (обычный и const), -
+ *    - реализованы итераторы (обычный и const), +
  *    - empty(),                                 +
  *    - size(),                                  +
  *    - clear(),                                 +
@@ -45,10 +45,7 @@ public:
     //// Member functions
     List() : _size(0), _head(nullptr), _tail(nullptr) {}
 
-    ~List()
-    {
-        clear();
-    }
+    ~List() { clear(); }
 
     //// Element access
     T& front() { return (T&)_head->_value; }
@@ -62,109 +59,210 @@ public:
         using It = Node*;
 
         It _it;
+        bool _isEnd;
     public:
-        iterator( Node* node ) : _it(node)
-        {
-        }
+        iterator( Node* node, const bool& isEnd = false ) : _it(node), _isEnd(isEnd) {}
 
         bool operator!=( const iterator& rhs ) const
         {
-            if( _it == nullptr )
-                return ( rhs._it != nullptr );
-            
-            if( rhs._it == nullptr )
-                return true;
+            if( ( _isEnd and ( rhs._isEnd == _isEnd ) ) )
+                return false;
 
-            return ( _it->_value != rhs._it->_value );
+            int x = ( int( _it->_value != rhs._it->_value ) + int( _it->_prev != rhs._it->_prev )
+                    + int( _it->_next != rhs._it->_next ) );
+
+            if( ( ( x == 0 ) or ( ( x == 3 ) and ( _isEnd != rhs._isEnd ) ) ) )
+                return true;
+            return false;
         }
         
-        bool operator==( const iterator& rhs ) const
-        {
-            return !( this != rhs );
-        }
+        bool operator==( const iterator& rhs ) const { return !( this != rhs ); }
 
         iterator& operator++()
         {
-            _it = _it->_next;
+            if( ( _isEnd and ( _it->_next != nullptr ) ) )
+            {
+                _isEnd = false;
+                return *this;
+            }
+
+            if( _it->_next == nullptr )
+                _isEnd = true;
+            else
+                _it = _it->_next;
+
             return *this;
         }
 
         iterator operator++(int)
         {
-            iterator buffer = this;
-            _it = _it->_next;
+            iterator buffer( _it, _isEnd );
+
+            if( ( _isEnd and ( _it->_next != nullptr ) ) )
+            {
+                _isEnd = false;
+                return *this;
+            }
+
+            if( _it->_next == nullptr )
+                _isEnd = true;
+            else
+                _it = _it->_next;
+
             return buffer;
         }
 
         iterator& operator--()
         {
-            _it = _it->_prev;
+            if( ( _isEnd and ( _it->_prev != nullptr ) ) )
+            {
+                _isEnd = false;
+                return *this;
+            }
+
+            if( _it->_prev == nullptr )
+                _isEnd = true;
+            else
+                _it = _it->_prev;
+
             return *this;
         }
         
         iterator operator--(int)
         {
-            iterator buffer = this;
-            _it = _it->_prev;
+            iterator buffer( _it, _isEnd );
+
+            if( ( _isEnd and ( _it->_prev != nullptr ) ) )
+            {
+                _isEnd = false;
+                return *this;
+            }
+
+            if( _it->_prev == nullptr )
+                _isEnd = true;
+            else
+                _it = _it->_prev;
+
             return buffer;
         }
         
-        T& operator*()
-        {
-            return (T&)_it->_value;
-        }
+        T& operator*() { return (T&)_it->_value; }
     };
 
-#if 0
     class const_iterator
     {
     private:
-        using const_It = std::vector<Cell>::iterator;
+        using It = Node*;
 
+        It _it;
+        bool _isEnd;
     public:
-        const_iterator() : {}
+        const_iterator( Node* node, const bool& isEnd = false ) : _it(node), _isEnd(isEnd) {}
 
-        bool operator!=(const const_iterator& other) const {}
-        bool operator==(const const_iterator& other) const {}
+        bool operator!=( const const_iterator& rhs ) const
+        {
+            if( ( _isEnd and ( rhs._isEnd == _isEnd ) ) )
+                return false;
 
-        const_iterator& operator++() {}
-        const_iterator operator++(int) {}
-        const_iterator& operator--() {}
-        const_iterator operator--(int) {}
-        const T operator*() {}
+            int x = ( int( _it->_value != rhs._it->_value ) + int( _it->_prev != rhs._it->_prev )
+                    + int( _it->_next != rhs._it->_next ) );
+
+            if( ( ( x == 0 ) or ( ( x == 3 ) and ( _isEnd != rhs._isEnd ) ) ) )
+                return true;
+            return false;
+        }
+        
+        bool operator==( const const_iterator& rhs ) const { return !( this != rhs ); }
+
+        const_iterator& operator++()
+        {
+            if( ( _isEnd and ( _it->_next != nullptr ) ) )
+            {
+                _isEnd = false;
+                return *this;
+            }
+
+            if( _it->_next == nullptr )
+                _isEnd = true;
+            else
+                _it = _it->_next;
+
+            return *this;
+        }
+
+        const_iterator operator++(int)
+        {
+            const_iterator buffer( _it, _isEnd );
+
+            if( ( _isEnd and ( _it->_next != nullptr ) ) )
+            {
+                _isEnd = false;
+                return *this;
+            }
+
+            if( _it->_next == nullptr )
+                _isEnd = true;
+            else
+                _it = _it->_next;
+
+            return buffer;
+        }
+
+        const_iterator& operator--()
+        {
+            if( ( _isEnd and ( _it->_prev != nullptr ) ) )
+            {
+                _isEnd = false;
+                return *this;
+            }
+
+            if( _it->_prev == nullptr )
+                _isEnd = true;
+            else
+                _it = _it->_prev;
+
+            return *this;
+        }
+        
+        const_iterator operator--(int)
+        {
+            const_iterator buffer( _it, _isEnd );
+
+            if( ( _isEnd and ( _it->_prev != nullptr ) ) )
+            {
+                _isEnd = false;
+                return *this;
+            }
+
+            if( _it->_prev == nullptr )
+                _isEnd = true;
+            else
+                _it = _it->_prev;
+
+            return buffer;
+        }
+        
+        const T operator*() const { return _it->_value; }
     };
-#endif
 
     /** @brief begin - метод получения начала итератора
      * */
-    iterator begin() noexcept
-    {
-        return iterator(_head);
-    }
+    iterator begin() noexcept { return iterator(_head); }
 
-#if 0
     /** @brief cbegin - метод получения начала const итератора
      * */
-    const_iterator cbegin() noexcept {}
-#endif
+    const_iterator cbegin() noexcept { return const_iterator(_head); }
 
     /** @brief end - метод получения конца итератора
      * */
-    iterator end() noexcept
-    {
-        return iterator(nullptr);
-    }
+    iterator end() noexcept { return iterator( _tail, true ); }
 
-#if 0
     /** @brief end - метод получения конца const итератора
      * */
-    const_iterator cend() noexcept {}
-#endif
+    const_iterator cend() noexcept { return const_iterator( _tail, true ); }
 
     //// Capacity
-    bool empty() const
-    {
-        return ( ( _head == nullptr ) and ( _tail == nullptr ) ); }
+    bool empty() const { return ( ( _head == nullptr ) and ( _tail == nullptr ) ); }
 
     size_t size() const { return _size; }
 
@@ -177,7 +275,6 @@ public:
         Node* node = _head->_next;
         while( node )
         {
-            --_size;
             delete _head;
             _head = node;
             node = node->_next;
@@ -338,10 +435,19 @@ namespace ListTestSpace
                 ( "front( " + felem + " ) -> " + efelem + " | back( " + belem + " ) -> " + ebelem )
             ) {}
     };
+
+    class ListNotCurrentValue : public TestException
+    {
+    public:
+        ListNotCurrentValue( const int& a, const int& b ) : TestException(
+                ( "Ожидаемые значения не равны!: " + std::to_string(a) + " != " + std::to_string(b) )
+            ) {}
+    };
     
     namespace check
     {
         std::vector<int> frame = { -3, -2, -1, 0, 1, 2, 3 };
+        const size_t MIDDLE = 3;
 
         template<typename T>
         void front_and_back()
@@ -356,7 +462,6 @@ namespace ListTestSpace
                 throw ListSizeNotExpected( lst.size(), 0 );
 
             // Добавляем первый элемент
-            const size_t MIDDLE = 3;
             lst.push_back(frame[MIDDLE]);
             if( ( ( lst.front() != frame[MIDDLE] ) or ( lst.back() != frame[MIDDLE] ) ) )
             {
@@ -447,7 +552,101 @@ namespace ListTestSpace
         template<typename T>
         void inter()
         {
+            T lst;
+            lst.push_back(frame[MIDDLE]);
+            for( size_t i = ( MIDDLE - 1 ), j = ( MIDDLE + 1 ); j < frame.size(); --i, ++j )
+            {
+                lst.push_front(frame[i]);
+                lst.push_back(frame[j]);
+            }
 
+            //// Тест обычного итератора ++, -- ...
+            auto vectorIt = frame.begin();
+            auto listIt = lst.begin();
+            for( size_t i = 0, I = frame.size(); i < I; ++i, ++listIt, ++vectorIt )
+            {
+                if( *listIt != *vectorIt )
+                    throw ListNotCurrentValue( *listIt, *vectorIt );
+            }
+
+            vectorIt = frame.begin();
+            listIt = lst.begin();
+            for( size_t i = 0, I = frame.size(); i < I; ++i, listIt++, vectorIt++ )
+            {
+                if( *listIt != *vectorIt )
+                    throw ListNotCurrentValue( *listIt, *vectorIt );
+            }
+
+            auto vectorItEnd = frame.end();
+            auto listItEnd = lst.end();
+            for( size_t i = 0, I = frame.size(); i < I; ++i )
+            {
+                --listItEnd;
+                --vectorItEnd;
+                if( *listItEnd != *vectorItEnd )
+                    throw ListNotCurrentValue( *listItEnd, *vectorItEnd );
+            }
+
+            vectorItEnd = frame.end();
+            listItEnd = lst.end();
+            for( size_t i = 0, I = frame.size(); i < I; ++i )
+            {
+                listItEnd--;
+                vectorItEnd--;
+                if( *listItEnd != *vectorItEnd )
+                    throw ListNotCurrentValue( *listItEnd, *vectorItEnd );
+            }
+
+            //// Тест обычного const итератора ++, -- ...
+            auto vectorItConst = frame.cbegin();
+            auto listItConst = lst.cbegin();
+            for( size_t i = 0, I = frame.size(); i < I; ++i, ++listItConst, ++vectorItConst )
+            {
+                if( *listItConst != *vectorItConst )
+                    throw ListNotCurrentValue( *listItConst, *vectorItConst );
+            }
+
+            vectorItConst = frame.cbegin();
+            listItConst = lst.cbegin();
+            for( size_t i = 0, I = frame.size(); i < I; ++i, listItConst++, vectorItConst++ )
+            {
+                if( *listItConst != *vectorItConst )
+                    throw ListNotCurrentValue( *listItConst, *vectorItConst );
+            }
+
+            auto vectorItEndConst = frame.cend();
+            auto listItEndConst = lst.cend();
+            for( size_t i = 0, I = frame.size(); i < I; ++i )
+            {
+                --listItEndConst;
+                --vectorItEndConst;
+                if( *listItEndConst != *vectorItEndConst )
+                    throw ListNotCurrentValue( *listItEndConst, *vectorItEndConst );
+            }
+
+            vectorItEndConst = frame.cend();
+            listItEndConst = lst.cend();
+            for( size_t i = 0, I = frame.size(); i < I; ++i )
+            {
+                listItEndConst--;
+                vectorItEndConst--;
+                if( *listItEndConst != *vectorItEndConst )
+                    throw ListNotCurrentValue( *listItEndConst, *vectorItEndConst );
+            }
+
+            auto it = lst.begin();
+            auto revers = --(frame.cend());
+            for( const auto END = lst.end(); it != END; ++it, --revers )
+            {
+                *it = *revers;
+            }
+            --it;
+            for( const auto value : frame )
+            {
+                int x = *(it--);
+                if( value != x )
+                    throw ListNotCurrentValue( value, x );
+            }
         }
 
     };
@@ -461,6 +660,8 @@ namespace ListTestSpace
         {
             check::front_and_back<mylist>();
             check::front_and_back<stdlist>();
+            check::inter<mylist>();
+            check::inter<stdlist>();
         }
         catch( const TestException& emsg )
         {
