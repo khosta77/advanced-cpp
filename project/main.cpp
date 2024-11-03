@@ -13,13 +13,13 @@
  *    который "using the public member hook...".
  * >> внутри списка должны быть:
  *    - реализованы итераторы (обычный и const), -
- *    - empty(),                                 -
- *    - size(),                                  -
- *    - clear(),                                 -
- *    - front(),                                 -
- *    - back(),                                  -
- *    - push/pop_front(),                        -
- *    - push/pop_back(),                         -
+ *    - empty(),                                 +
+ *    - size(),                                  +
+ *    - clear(),                                 +
+ *    - front(),                                 +
+ *    - back(),                                  +
+ *    - push/pop_front(),                        +
+ *    - push/pop_back(),                         +
  *    - insert(),                                -
  *    - splice() с семантикой, аналогичной STL.  -
  * */
@@ -63,16 +63,24 @@ public:
 
         It _it;
     public:
-        iterator( Node* node ) : _it(node) {}
-
-        bool operator!=( const iterator& other ) const
+        iterator( Node* node ) : _it(node)
         {
-            return ( _it->_value != other._it->_value );
+        }
+
+        bool operator!=( const iterator& rhs ) const
+        {
+            if( _it == nullptr )
+                return ( rhs._it != nullptr );
+            
+            if( rhs._it == nullptr )
+                return true;
+
+            return ( _it->_value != rhs._it->_value );
         }
         
-        bool operator==( const iterator& other ) const
+        bool operator==( const iterator& rhs ) const
         {
-            return ( _it->_value == other._it->_value );
+            return !( this != rhs );
         }
 
         iterator& operator++()
@@ -163,22 +171,21 @@ public:
     //// Modifiers
     void clear()
     {
-        std::stack<Node*> nodes;
-        nodes.push(_head);
-        while( _head->_next )
-        {
-            _head = _head->_next;
-            nodes.push(_head);
-        }
+        if( ( _head == nullptr ) and ( _tail == nullptr ) )
+            return;
 
-        while( !nodes.empty() )
+        Node* node = _head->_next;
+        while( node )
         {
-            delete nodes.top();
-            nodes.pop();
+            --_size;
+            delete _head;
+            _head = node;
+            node = node->_next;
         }
-
+        delete _head;
         _head = nullptr;
         _tail = nullptr;
+        _size = 0;
     }
 
     //iterator insert() {}
@@ -217,9 +224,11 @@ public:
 private:
     void pop_last_element()
     {
-        delete _head;
-        _head = _tail = nullptr;
-        ++_size;
+        Node* node = _head;
+        _head = nullptr;
+        _tail = nullptr;
+        delete node;
+        --_size;
     }
 
 public:
@@ -234,6 +243,7 @@ public:
         Node* node = _head;
         _head = _head->_next;
         _head->_prev = nullptr;
+        --_size;
         delete node;
     }
 
@@ -248,9 +258,30 @@ public:
         Node* node = _tail;
         _tail = _tail->_prev;
         _tail->_next = nullptr;
+        --_size;
         delete node;
     }
 
+#if 1
+    void print()
+    {
+        Node* node = _head;
+        while( node )
+        {
+            std::cout << node->_value << '\t';
+            node = node->_next;
+        }
+        std::cout << std::endl;
+        node = _tail;
+        while( node )
+        {
+            std::cout << node->_value << '\t';
+            node = node->_prev;
+        }
+        std::cout << std::endl;
+        std::cout << std::endl;
+    }
+#endif
     //// Operations
     //void splice() {}
 };
@@ -310,9 +341,7 @@ namespace ListTestSpace
     
     namespace check
     {
-        std::vector<int> frame = {
-            -3, -2, -1, 0, 1, 2, 3 
-        };
+        std::vector<int> frame = { -3, -2, -1, 0, 1, 2, 3 };
 
         template<typename T>
         void front_and_back()
@@ -327,10 +356,15 @@ namespace ListTestSpace
                 throw ListSizeNotExpected( lst.size(), 0 );
 
             // Добавляем первый элемент
-            lst.push_back(frame[4]);
-            if( ( ( lst.front() != frame[4] ) or ( lst.back() != frame[4] ) ) )
-                throw ListNotExceptedElement( std::to_string( lst.front() ), std::to_string( frame[4] ),
-                                              std::to_string( lst.back() ), std::to_string( frame[4] ) );
+            const size_t MIDDLE = 3;
+            lst.push_back(frame[MIDDLE]);
+            if( ( ( lst.front() != frame[MIDDLE] ) or ( lst.back() != frame[MIDDLE] ) ) )
+            {
+                throw ListNotExceptedElement(
+                        std::to_string( lst.front() ), std::to_string( frame[MIDDLE] ),
+                        std::to_string( lst.back() ), std::to_string( frame[MIDDLE] )
+                    );
+            }
 
             // Если список все еще пустой -> ошибка
             if( lst.empty() )
@@ -349,10 +383,10 @@ namespace ListTestSpace
             lst.back() = -1;
             if( ( ( lst.front() != -1 ) or ( lst.back() != -1 ) ) )
                 throw ListBackNotLink();
-            lst.back() = frame[4];
+            lst.back() = frame[MIDDLE];
 
             // Проверяем заполнение вектора
-            for( size_t i = 3, j = 5, count = 1; j < frame.size(); --i, ++j )
+            for( size_t i = ( MIDDLE - 1 ), j = ( MIDDLE + 1 ), count = 1; j < frame.size(); --i, ++j )
             {
                 lst.push_front(frame[i]);
                 lst.push_back(frame[j]);
@@ -367,6 +401,53 @@ namespace ListTestSpace
                 if( lst.size() != count )
                     throw ListSizeNotExpected( lst.size(), count );
             }
+
+            // удаление
+            for( size_t i = 1, j = ( lst.size() - 2 ), count = lst.size(); i <= j; ++i, --j )
+            {
+                lst.pop_front();
+                lst.pop_back();
+                count -= 2;
+
+                // Проверка корректных значений
+                if( ( ( lst.front() != frame[i] ) or ( lst.back() != frame[j] ) ) )
+                    throw ListNotExceptedElement( std::to_string( lst.front() ), std::to_string( frame[i] ),
+                                                  std::to_string( lst.back() ), std::to_string( frame[j] ) );
+
+                // Проверка размера
+                if( lst.size() != count )
+                    throw ListSizeNotExpected( lst.size(), count );
+            }
+
+            lst.pop_front();
+            if( lst.size() != 0 )
+                throw ListSizeNotExpected( lst.size(), 0 );
+
+            // Проверка очистки списка
+            for( size_t i = ( MIDDLE - 1 ), j = ( MIDDLE + 1 ), count = 0; j < frame.size(); --i, ++j )
+            {
+                lst.push_front(frame[i]);
+                lst.push_back(frame[j]);
+            }
+
+            if( lst.size() != ( frame.size() - 1 ) )
+                throw ListSizeNotExpected( lst.size(), ( frame.size() - 1 ) );
+
+            lst.clear();
+
+            // Проверка вообще есть ли элементы уже
+            if( !lst.empty() )
+                throw ListNotEmpty();
+
+            // Проверка размера
+            if( lst.size() != 0 )
+                throw ListSizeNotExpected( lst.size(), 0 );
+        }
+
+        template<typename T>
+        void inter()
+        {
+
         }
 
     };
