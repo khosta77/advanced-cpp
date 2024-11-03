@@ -6,7 +6,7 @@
 #include <map>
 
 #include "exception.h"
-#include "myHashTable.h"
+#include "HashTable.h"
 
 /** class LRUCache - Least Recently Used (LRU) Cache
  *                   Методы класса я старался по максимому и возможности взять из std::unordered_map
@@ -33,7 +33,7 @@ private:
      * */
     inline void checkKeyIsFinding( const K& key )
     {
-        if( !_hashTable.find(key) )
+        if( !_hashTable.count(key) )
             throw LRUCKeyNotFind();
     }
 public:
@@ -163,7 +163,7 @@ public:
     void insert( const K& key, const T& value )
     {
         checkCapacityIsZero();
-        if( _hashTable.find( key ) )
+        if( _hashTable.count( key ) )
         {
             auto it = std::list<std::pair<K, T>>{std::pair<K, T>( key, value )};
             _hashTable.erase( key );
