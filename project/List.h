@@ -16,7 +16,7 @@
  *    - push/pop_front(),                        +
  *    - push/pop_back(),                         +
  *    - insert(),                                +
- *    - splice() с семантикой, аналогичной STL.  +
+ *    - splice() с семантикой, аналогичной STL.  -
  * */
 template<typename T>
 class List
@@ -65,7 +65,7 @@ public:
 
         friend class List;
     public:
-        iterator( Node* node, const bool& isEnd = false ) : _it(node), _isEnd(isEnd) {}
+        iterator( Node* node = nullptr, const bool& isEnd = false ) : _it(node), _isEnd(isEnd) {}
 
         bool operator!=( const iterator& rhs ) const
         {
@@ -80,7 +80,18 @@ public:
             return false;
         }
         
-        bool operator==( const iterator& rhs ) const { return !( iterator( _it, _isEnd ) != rhs ); }
+        bool operator==( const iterator& rhs ) const
+        {
+            if( ( _isEnd and ( rhs._isEnd == _isEnd ) ) )
+                return false;
+
+            int x = ( int( _it->_value == rhs._it->_value ) + int( _it->_prev == rhs._it->_prev )
+                    + int( _it->_next == rhs._it->_next ) );
+
+            if( ( ( x == 0 ) or ( ( x == 3 ) and ( _isEnd == rhs._isEnd ) ) ) )
+                return true;
+            return false;
+        }
 
         iterator& operator++()
         {
@@ -160,8 +171,10 @@ public:
 
         It _it;
         bool _isEnd;
+
+        friend class List;
     public:
-        const_iterator( Node* node, const bool& isEnd = false ) : _it(node), _isEnd(isEnd) {}
+        const_iterator( Node* node = nullptr, const bool& isEnd = false ) : _it(node), _isEnd(isEnd) {}
 
         bool operator!=( const const_iterator& rhs ) const
         {
@@ -176,7 +189,18 @@ public:
             return false;
         }
         
-        bool operator==( const const_iterator& rhs ) const { return !( const_iterator( _it, _isEnd ) != rhs ); }
+        bool operator==( const const_iterator& rhs ) const
+        {
+            if( ( _isEnd and ( rhs._isEnd == _isEnd ) ) )
+                return false;
+
+            int x = ( int( _it->_value == rhs._it->_value ) + int( _it->_prev == rhs._it->_prev )
+                    + int( _it->_next == rhs._it->_next ) );
+
+            if( ( ( x == 0 ) or ( ( x == 3 ) and ( _isEnd == rhs._isEnd ) ) ) )
+                return true;
+            return false;
+        }
 
         const_iterator& operator++()
         {
@@ -251,19 +275,15 @@ public:
 
     /** @brief begin - метод получения начала итератора
      * */
-    iterator begin() noexcept { return iterator(_head); }
-
-    /** @brief cbegin - метод получения начала const итератора
-     * */
-    const_iterator cbegin() noexcept { return const_iterator(_head); }
+    iterator begin() { return iterator(_head); }
+    const_iterator begin() const { return const_iterator(_head); }
+    const_iterator cbegin() const noexcept { return const_iterator(_head); }
 
     /** @brief end - метод получения конца итератора
      * */
-    iterator end() noexcept { return iterator( _tail, true ); }
-
-    /** @brief end - метод получения конца const итератора
-     * */
-    const_iterator cend() noexcept { return const_iterator( _tail, true ); }
+    iterator end() { return iterator( _tail, true ); }
+    const_iterator end() const { return const_iterator( _tail, true ); }
+    const_iterator cend() const noexcept { return const_iterator( _tail, true ); }
 
     //// Capacity
     bool empty() const { return ( ( _head == nullptr ) and ( _tail == nullptr ) ); }
@@ -392,38 +412,9 @@ public:
     }
 
     //// Operations
-    void splice( iterator pos, List& other, iterator it )
+    void splice( [[maybe_unused]] iterator pos, [[maybe_unused]] List& other, [[maybe_unused]] iterator it )
     {
-        if( ( it._it == nullptr ) || ( other.empty() ) )
-            return;
 
-        Node* nodeToMove = it._it;
-        Node* prevNode = nodeToMove->_prev;
-        Node* nextNode = nodeToMove->_next;
-
-        if(prevNode)
-            prevNode->_next = nextNode;
-        if(nextNode)
-            nextNode->_prev = prevNode;
-
-        if( other._head == nodeToMove )
-            other._head = nextNode;
-        if( other._tail == nodeToMove )
-            other._tail = prevNode;
-
-        Node* posNode = pos._it;
-        nodeToMove->_prev = posNode->_prev;
-        nodeToMove->_next = posNode;
-
-        if( posNode->_prev )
-            posNode->_prev->_next = nodeToMove;
-        posNode->_prev = nodeToMove;
-
-        if( posNode == _head )
-            _head = nodeToMove;
-
-        --other._size;
-        ++_size;
     }
 };
 
