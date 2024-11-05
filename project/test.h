@@ -1,9 +1,9 @@
 #ifndef CPP_COURSE_TEST_H_
 #define CPP_COURSE_TEST_H_
 
-#include "lru.h"
 #include "HashTable.h"
 #include "List.h"
+#include "LRUCache.h"
 
 #include <unordered_map>
 #include <list>
