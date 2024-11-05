@@ -7,6 +7,7 @@
 
 #include "exception.h"
 #include "HashTable.h"
+#include "List.h"
 
 /** class LRUCache - Least Recently Used (LRU) Cache
  *                   Методы класса я старался по максимому и возможности взять из std::unordered_map
@@ -18,8 +19,12 @@ private:
 
     size_t _capacity;
 
-    HashTable<K, typename std::list<std::pair<K, T>>::iterator> _hashTable;
-    std::list<std::pair<K, T>> _cacheList;
+    using LRU_pair = std::pair<K, T>;
+    using LRU_list = std::list<LRU_pair>;
+    using LRU_list_iterator = typename LRU_list::iterator;
+    using LRU_table = HashTable<K, LRU_list_iterator>;
+    LRU_table _hashTable;
+    LRU_list _cacheList;
 
     /** @brief checkCapacityIsZero - Часто надо проверять _capacity, обернул в inline функцию
      * */
@@ -55,10 +60,7 @@ public:
 
     /** @brief Деструктор
      * */
-    ~LRUCache()
-    {
-        clear();
-    }
+    ~LRUCache() { clear(); }
 
     /** @brief перегрузка оператора побитового сдвига для выводы std::ostream
      * */
@@ -69,78 +71,14 @@ public:
         return os;
     }
 
-
-    //// Iterators
-
-    /** @class iterator - итератор
-     * */
-    class iterator
-    {
-        using listIt = std::list<std::pair<K, T>>::iterator;
-
-        listIt _it;
-    public:
-        iterator( typename std::list<std::pair<K, T>>::iterator it ) : _it(it) {}
-
-        bool operator!=(const iterator& other) const
-        {
-            return _it != other._it;
-        }
-
-        bool operator==(const iterator& other) const
-        {
-            return _it == other._it;
-        }
-
-        iterator& operator++()
-        {
-            ++_it;
-            return *this;
-        }
-
-        iterator operator++(int)
-        {
-            iterator buffer = this;
-            ++_it;
-            return buffer;
-        }
-
-        std::pair<K, T&> operator*()
-        {
-            return { _it->first, (T&)_it->second };
-        }
-    };
-
-    /** @brief begin - метод получения начала итератора
-     * */
-    iterator begin() noexcept
-    {
-        return iterator( _cacheList.begin() );
-    }
-
-    /** @brief end - метод получения конца итератора
-     * */
-    iterator end() noexcept
-    {
-        return iterator( _cacheList.end() );
-    }
-
-    // cbegin, cend не стал реализовывать, показалось лишним
-
     //// Capacity
     /** @brief empty - проверка не пуста ли наша таблица
      * */
-    const bool empty() const noexcept
-    {
-        return _hashTable.empty();
-    }
+    const bool empty() const noexcept { return _hashTable.empty(); }
     
     /** @brief size - размер заполненого хеша
      * */
-    const size_t size() const noexcept
-    {
-        return _hashTable.size();
-    }
+    const size_t size() const noexcept { return _hashTable.size(); }
 
     //// Modifiers
     /** @brief clear - очистить все
@@ -153,10 +91,7 @@ public:
 
     /** @brief insert - вставка пары
      * */
-    void insert( const std::pair<K, T>& pr )
-    {
-        insert( pr.first, pr.second );
-    }
+    void insert( const LRU_pair& pr ) { insert( pr.first, pr.second ); }
 
     /** @brief insert - вставка ключ+значение
      * */
@@ -165,9 +100,10 @@ public:
         checkCapacityIsZero();
         if( _hashTable.count( key ) )
         {
-            auto it = std::list<std::pair<K, T>>{std::pair<K, T>( key, value )};
+            LRU_list buffer;
+            buffer.push_front( LRU_pair( key, value ) );
             _hashTable.erase( key );
-            _hashTable.insert( key, it.begin() );
+            _hashTable.insert( key, buffer.begin() );
             _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );
         }
         else
@@ -178,24 +114,9 @@ public:
                 _hashTable.erase(lastKey);
                 _cacheList.pop_back();
             }
-            _cacheList.emplace_front( key, value );
+            _cacheList.push_front( LRU_pair( key, value ) );
             _hashTable.insert( key, _cacheList.begin() );
         }
-    }
-
-    /*
-     * emplace не реализовал, по идеи в данной структуре его не должно быть,
-     * так как он всегда бы возвращал true и от insert ни чем не отличался бы
-     * */
-
-    /** @brief erase - удаление по итератору
-     * */
-    void erase( const iterator& it )
-    {
-        checkCapacityIsZero();
-
-        _cacheList.erase(*it);
-        _hashTable.erase(*it.first);
     }
 
     /** @brief erase - удаление элемента по ключу
@@ -235,12 +156,11 @@ public:
     T& operator[]( const K& key )
     {
         _cacheList.splice( _cacheList.begin(), _cacheList, _hashTable[key] );
-        return (T&)_hashTable[key]->second;
+        return (T&)(*_hashTable[key]).second;
     }
 
     //// other
     /** @brief recapacity - изменить размер _capacity, очистить все данные что были до, мало ли
-     *                      TODO: исправить, чтобы данные не удалялись
      * */
     void recapacity( const size_t& newCapacity ) noexcept
     {
@@ -250,12 +170,7 @@ public:
 
     /** @brief getCapacity - получить _capacity
      * */
-    const size_t getCapacity() const noexcept
-    {
-        return _capacity;
-    }
-    
+    const size_t getCapacity() const noexcept { return _capacity; }
 };
-
 
 #endif  // CPP_COURSE_PROJECR_LRUCACHE_H_
