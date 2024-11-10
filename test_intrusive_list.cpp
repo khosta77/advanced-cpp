@@ -1,5 +1,6 @@
 #include "intrusive_list.hpp"
 
+#include <list>
 #include <sstream>
 #include <cassert>
 
@@ -149,7 +150,7 @@ namespace ListTestSpace
                 throw ListSizeNotExpected( lst.size(), 0 );
 
             // Проверка очистки списка
-            for( size_t i = ( MIDDLE - 1 ), j = ( MIDDLE + 1 ), count = 0; j < frame.size(); --i, ++j )
+            for( size_t i = ( MIDDLE - 1 ), j = ( MIDDLE + 1 ); j < frame.size(); --i, ++j )
             {
                 lst.push_front(frame[i]);
                 lst.push_back(frame[j]);

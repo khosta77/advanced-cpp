@@ -1,5 +1,6 @@
 #include "hashtable.hpp"
 
+#include <string>
 #include <sstream>
 #include <cassert>
 
@@ -112,7 +113,7 @@ namespace HashTestSpace
                 throw NoSizeTest( table.size(), frame.size() );
 
             // Проверка итератора
-            for( const auto [ key, value ] : frame )
+            for( auto [ key, value ] : frame )
             {
                 bool noElement = true;
 
@@ -138,6 +139,7 @@ namespace HashTestSpace
                 if( table[key] != value )
                     throw OperatorNotWork();
             }
+			table.clear();
         }
 
         template<typename T>
@@ -175,6 +177,7 @@ namespace HashTestSpace
             lf = table.load_factor();
             if( lf != 0.0f )
                 throw LoadFactorNotCool( lf, 0.0f );
+			table.clear();
         }
 
         template<typename T>
@@ -194,15 +197,14 @@ namespace HashTestSpace
             table.reserve(100);
             if( table.load_factor() > 0.03f )
                 throw ReserveProblem();
+			table.clear();
         }
-    
     };  // check
 
     void test()
     {
         using HT = HashTable<std::string, int>;
         using UM = std::unordered_map<std::string, int>;
-
         try
         {
             check::insert<HT>();
@@ -216,6 +218,7 @@ namespace HashTestSpace
         {
             std::cout << emsg.what() << std::endl;
         };
+		check::frame.clear();
     }
 
 };  // HashTestSpace

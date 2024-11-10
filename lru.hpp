@@ -102,11 +102,11 @@ public:
     //// Capacity
     /** @brief empty - проверка не пуста ли наша таблица
      * */
-    const bool empty() const noexcept { return _hashTable.empty(); }
+	bool empty() const noexcept { return _hashTable.empty(); }
     
     /** @brief size - размер заполненого хеша
      * */
-    const size_t size() const noexcept { return _hashTable.size(); }
+    size_t size() const noexcept { return _hashTable.size(); }
 
     //// Modifiers
     /** @brief clear - очистить все
@@ -198,7 +198,7 @@ public:
 
     /** @brief getCapacity - получить _capacity
      * */
-    const size_t getCapacity() const noexcept { return _capacity; }
+    size_t getCapacity() const noexcept { return _capacity; }
 
 	size_t count( const K& key ) { return _hashTable.count(key); }
 };

@@ -1,6 +1,8 @@
 #ifndef CPP_COURSE_PROJECT_LIST_H_
 #define CPP_COURSE_PROJECT_LIST_H_
 
+#include <iostream>
+
 /*
  * Из ТЗ требование к list:
  * >> список, очевидно, будет шаблонным. Можно вдохновляться

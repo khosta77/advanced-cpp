@@ -221,11 +221,11 @@ public:
     //// Capacity
     /** // TODO: Описание ???
      * */
-    const bool empty() const noexcept { return ( _size == 0 ); }
+    bool empty() const noexcept { return ( _size == 0 ); }
 
     /** // TODO: Описание ???
      * */
-    const size_t size() const noexcept { return _size; }
+    size_t size() const noexcept { return _size; }
 
     //// Modifiers
     void clear()
