@@ -1,5 +1,7 @@
 # ДЗ1. LRUCache
 
+https://docs.google.com/document/d/18gMzbw4RjwLc12W5xyNt75EWdB_aawtPbloxd-vB_nM/edit?tab=t.0
+
 Необходимо было реализовать **LRUCache**( Least Recently Used Cache ) - main задание, дополнительно:
 
 * [X] Реализовать через `template`;
