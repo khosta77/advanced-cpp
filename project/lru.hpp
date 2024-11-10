@@ -37,8 +37,8 @@ public:
     LRUCKeyNotFind() : LRUCacheException( "key not find" ) {}
 };
 
-#include "HashTable.h"
-#include "List.h"
+#include "hashtable.hpp"
+#include "intrusive_list.hpp"
 
 /** class LRUCache - Least Recently Used (LRU) Cache
  *                   Методы класса я старался по максимому и возможности взять из std::unordered_map

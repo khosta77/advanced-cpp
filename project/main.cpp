@@ -1,12 +1,8 @@
-#include "test.h"
+#include "lru.hpp"
 
 int main( int argc, char* argv[] )
 {
-    ListTestSpace::test();
-    HashTestSpace::test();
-    LRUTestSpace::test();
-	LRUHWTestSpace::test();
-	//loop( std::cin, std::cout );
+	loop( std::cin, std::cout );
     return 0;
 }
 
