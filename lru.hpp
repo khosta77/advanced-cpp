@@ -54,7 +54,7 @@ private:
     using LRU_list = std::list<LRU_pair>;
     using LRU_list_iterator = typename LRU_list::iterator;
     using LRU_table = HashTable<K, LRU_list_iterator>;
-	using iterator = LRU_table::iterator;
+    using iterator = LRU_table::iterator;
 
     LRU_table _hashTable;
     LRU_list _cacheList;
@@ -95,15 +95,15 @@ public:
      * */
     ~LRUCache() { clear(); }
 
-	//// iterator
-	iterator begin() { return iterator(_hashTable); }	
-	iterator end() { return iterator(_hashTable); }
+    //// iterator
+    iterator begin() { return iterator(_hashTable); }	
+    iterator end() { return iterator(_hashTable); }
 
     //// Capacity
     /** @brief empty - проверка не пуста ли наша таблица
      * */
-	bool empty() const noexcept { return _hashTable.empty(); }
-    
+    bool empty() const noexcept { return _hashTable.empty(); }
+
     /** @brief size - размер заполненого хеша
      * */
     size_t size() const noexcept { return _hashTable.size(); }
@@ -206,161 +206,161 @@ public:
 class LRUCacheForHW1
 {
 private:
-	using Q = std::string;
-	using F = std::vector<float>;
+    using Q = std::string;
+    using F = std::vector<float>;
 
-	LRUCache<Q, F> _cache;
+    LRUCache<Q, F> _cache;
 
-	size_t _bytes;
+    size_t _bytes;
 public:
-	LRUCacheForHW1( const size_t& N, const size_t& bytes ) : _cache(N), _bytes(bytes) {}
-	~LRUCacheForHW1() { clear(); }
+    LRUCacheForHW1( const size_t& N, const size_t& bytes ) : _cache(N), _bytes(bytes) {}
+    ~LRUCacheForHW1() { clear(); }
 
-	void insert( const Q& key, const F& values )
-	{
-		if( _cache.count(key) == 1 )
-		{
-			std::vector<float> old_values = _cache.at(key);
-			if( old_values.size() == _bytes )
-			{
-				old_values.clear();
-				return;
-			}
-			size_t free_size = ( _bytes - old_values.size() );
-			for( size_t i = 0, I = values.size(); ( ( i < I ) and ( i < free_size ) ); ++i )
-				old_values.push_back( values[i] );
-			_cache.insert( key, old_values );
-			old_values.clear();
-			return;
-		}
+    void insert( const Q& key, const F& values )
+    {
+        if( _cache.count(key) == 1 )
+        {
+            std::vector<float> old_values = _cache.at(key);
+            if( old_values.size() == _bytes )
+            {
+                old_values.clear();
+                return;
+            }
+            size_t free_size = ( _bytes - old_values.size() );
+            for( size_t i = 0, I = values.size(); ( ( i < I ) and ( i < free_size ) ); ++i )
+                old_values.push_back( values[i] );
+            _cache.insert( key, old_values );
+            old_values.clear();
+            return;
+        }
 
-		if( values.size() <= _bytes )
-		{
-			_cache.insert( key, values );
-			return;
-		}
+        if( values.size() <= _bytes )
+        {
+            _cache.insert( key, values );
+            return;
+        }
 
-		F buffer_values = values;
-		buffer_values.resize( _bytes );
-		_cache.insert( key, buffer_values );
-		buffer_values.clear();
-	}
+        F buffer_values = values;
+        buffer_values.resize( _bytes );
+        _cache.insert( key, buffer_values );
+        buffer_values.clear();
+    }
 
-	F at( const Q& key) { return _cache.at(key); }
-	size_t size() { return _cache.size(); }
-	size_t size_bytes() const { return _bytes; }
-	size_t count( const Q& key ) { return _cache.count(key); }
-	void clear() { _cache.clear(); }
+    F at( const Q& key) { return _cache.at(key); }
+    size_t size() { return _cache.size(); }
+    size_t size_bytes() const { return _bytes; }
+    size_t count( const Q& key ) { return _cache.count(key); }
+    void clear() { _cache.clear(); }
 };
 
 std::vector<std::string> split( const std::string& content, const char del )
 {
-	std::vector<std::string> arrayString;
-	std::string buffer = "";
-	for( size_t i = 0, I = content.size(); i < I; ++i )
-	{
-		if( content[i] != del )
-			buffer += content[i];
+    std::vector<std::string> arrayString;
+    std::string buffer = "";
+    for( size_t i = 0, I = content.size(); i < I; ++i )
+    {
+        if( content[i] != del )
+            buffer += content[i];
         else
-		{
-			arrayString.push_back(buffer);
+        {
+            arrayString.push_back(buffer);
             buffer = "";
-		}
-	}
-	arrayString.push_back(buffer);
-	buffer.clear();
-	return arrayString;
+        }
+    }
+    arrayString.push_back(buffer);
+    buffer.clear();
+    return arrayString;
 }
 
 std::ostream& operator<<( std::ostream& os, const std::vector<float>& values )
 {
-	for( size_t i = 0, I = values.size(), I_ = (I - 1); i < I; ++i )
-		os << values[i] << ( ( i != I_ ) ? " " : "" );
-	return os;
+    for( size_t i = 0, I = values.size(), I_ = (I - 1); i < I; ++i )
+        os << values[i] << ( ( i != I_ ) ? " " : "" );
+    return os;
 }
 
 void loop_get( LRUCacheForHW1& cache, const std::string& line, std::ostream& out )
 {
-	if( cache.count(line) )
-	{
-		out << cache.at(line) << std::endl;
-	}
-	else
-	{
-		out << "!NOEMBED!" << std::endl;
-	}
+    if( cache.count(line) )
+    {
+        out << cache.at(line) << std::endl;
+    }
+    else
+    {
+        out << "!NOEMBED!" << std::endl;
+    }
 }
 
 std::vector<float> strsToFloats( std::vector<std::string>& values_str )
 {
-	std::vector<float> values(values_str.size());
-	try
-	{
-		for( size_t i = 0, I = values_str.size(); i < I; ++i )
-			values[i] = std::stof(values_str[i]);
-	}
-	catch( ... )
-	{
-		values.clear();
-	};
+    std::vector<float> values(values_str.size());
+    try
+    {
+        for( size_t i = 0, I = values_str.size(); i < I; ++i )
+            values[i] = std::stof(values_str[i]);
+    }
+    catch( ... )
+    {
+        values.clear();
+    };
 
-	values_str.clear();
-	return values;
+    values_str.clear();
+    return values;
 }
 
 void loop_insert( LRUCacheForHW1& cache, const std::string& line, std::ostream& out )
 {
-	std::vector<std::string> buffer = split( line, '\t' );
-	if( ( buffer.empty() or ( buffer.size() == 1 ) ) )
-	{
-		out << "!STORERR!" << std::endl;
-		return;
-	}
+    std::vector<std::string> buffer = split( line, '\t' );
+    if( ( buffer.empty() or ( buffer.size() == 1 ) ) )
+    {
+        out << "!STORERR!" << std::endl;
+        return;
+    }
 
-	std::string key = buffer[0];
-	std::vector<std::string> values_str = split( buffer[1], ' ' );
-	buffer.clear();
+    std::string key = buffer[0];
+    std::vector<std::string> values_str = split( buffer[1], ' ' );
+    buffer.clear();
 
-	auto values = strsToFloats( values_str );
-	if( values.empty() )
-	{
-		out << "!STORERR!" << std::endl;
-		key.clear();
-		return;
-	};
+    auto values = strsToFloats( values_str );
+    if( values.empty() )
+    {
+        out << "!STORERR!" << std::endl;
+        key.clear();
+        return;
+    };
 
-	try
-	{
-		cache.insert( key, values );
-		out << "!STORED!" << std::endl;
-	}
-	catch( ... )
-	{
-		out << "!STORERR!" << std::endl;
-	};
-	values.clear();
-	key.clear();
+    try
+    {
+        cache.insert( key, values );
+        out << "!STORED!" << std::endl;
+    }
+    catch( ... )
+    {
+        out << "!STORERR!" << std::endl;
+    };
+    values.clear();
+    key.clear();
 }
 
 void loop( std::istream& in, std::ostream& out )
 {
-	size_t N = 0, size = 0;
-	in >> N >> size;
-	LRUCacheForHW1 cache( N, size );
+    size_t N = 0, size = 0;
+    in >> N >> size;
+    LRUCacheForHW1 cache( N, size );
 
-	std::string line;
-	while( std::getline( in, line ) )
-	{
-		if( line.empty() )
-			continue;
+    std::string line;
+    while( std::getline( in, line ) )
+    {
+        if( line.empty() )
+            continue;
 
-		if( line.find('\t') == std::string::npos )
-			loop_get( cache, line, out );
-		else
-			loop_insert( cache, line, out );
-	}
-	line.clear();
-	cache.clear();
+        if( line.find('\t') == std::string::npos )
+            loop_get( cache, line, out );
+        else
+            loop_insert( cache, line, out );
+    }
+    line.clear();
+    cache.clear();
 }
 
 #endif  // CPP_COURSE_PROJECR_LRUCACHE_H_

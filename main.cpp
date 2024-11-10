@@ -2,7 +2,7 @@
 
 int main()
 {
-	loop( std::cin, std::cout );
+    loop( std::cin, std::cout );
     return 0;
 }
 

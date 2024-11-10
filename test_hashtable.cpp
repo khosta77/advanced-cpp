@@ -139,7 +139,7 @@ namespace HashTestSpace
                 if( table[key] != value )
                     throw OperatorNotWork();
             }
-			table.clear();
+            table.clear();
         }
 
         template<typename T>
@@ -177,7 +177,7 @@ namespace HashTestSpace
             lf = table.load_factor();
             if( lf != 0.0f )
                 throw LoadFactorNotCool( lf, 0.0f );
-			table.clear();
+            table.clear();
         }
 
         template<typename T>
@@ -197,7 +197,7 @@ namespace HashTestSpace
             table.reserve(100);
             if( table.load_factor() > 0.03f )
                 throw ReserveProblem();
-			table.clear();
+            table.clear();
         }
     };  // check
 
@@ -218,7 +218,7 @@ namespace HashTestSpace
         {
             std::cout << emsg.what() << std::endl;
         };
-		check::frame.clear();
+        check::frame.clear();
     }
 
 };  // HashTestSpace

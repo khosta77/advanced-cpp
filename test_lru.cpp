@@ -121,74 +121,74 @@ namespace LRUTestSpace
 namespace LRUHWTestSpace
 {
 
-	namespace test_xx
-	{
-		void test_01()
-		{
-			std::stringstream input, output;
-			input << "2 4" << std::endl;
-			input << "v1\t1e-3 1e-2 1e-1" << std::endl;
-			input << "v2" << std::endl;
-			input << "v1" << std::endl;
-			loop( input, output );
-			assert( output.str() == "!STORED!\n!NOEMBED!\n0.001 0.01 0.1\n" );
-		}
+    namespace test_xx
+    {
+        void test_01()
+        {
+            std::stringstream input, output;
+            input << "2 4" << std::endl;
+            input << "v1\t1e-3 1e-2 1e-1" << std::endl;
+            input << "v2" << std::endl;
+            input << "v1" << std::endl;
+            loop( input, output );
+            assert( output.str() == "!STORED!\n!NOEMBED!\n0.001 0.01 0.1\n" );
+        }
 
-		void test_02()
-		{
-			std::stringstream input, output;
-			input << "2 2" << std::endl;
-			input << "v1\t" << std::endl;
-			loop( input, output );
-			assert( output.str() == "!STORERR!\n" );
-		}
-	
-		void test_03()
-		{
-			std::stringstream input, output;
-			input << "2 2" << std::endl;
-			input << "v1\t1e-2 1e-1" << std::endl;
-			input << "v2\t1e-1 1e-2" << std::endl;
-			input << "v1" << std::endl;
-			input << "v2" << std::endl;
-			input << "v3\t1e1 1e2" << std::endl;
-			input << "v3" << std::endl;
-			input << "v1" << std::endl;
-			loop( input, output );
-			assert( output.str() == "!STORED!\n!STORED!\n0.01 0.1\n0.1 0.01\n!STORED!\n10 100\n!NOEMBED!\n" );
-		}
+        void test_02()
+        {
+            std::stringstream input, output;
+            input << "2 2" << std::endl;
+            input << "v1\t" << std::endl;
+            loop( input, output );
+            assert( output.str() == "!STORERR!\n" );
+        }
 
-		void test_04()
-		{
-			std::stringstream input, output;
-			input << "2 1" << std::endl;
-			input << "v1\t1e-2 1e-1" << std::endl;
-			input << "v2\t1e-1 1e-2" << std::endl;
-			input << "v1" << std::endl;
-			input << "v2" << std::endl;
-			input << "v3\t1e1 1e2" << std::endl;
-			input << "v3" << std::endl;
-			input << "v1" << std::endl;
-			loop( input, output );
-			assert( output.str() == "!STORED!\n!STORED!\n0.01\n0.1\n!STORED!\n10\n!NOEMBED!\n" );
-		}
+        void test_03()
+        {
+            std::stringstream input, output;
+            input << "2 2" << std::endl;
+            input << "v1\t1e-2 1e-1" << std::endl;
+            input << "v2\t1e-1 1e-2" << std::endl;
+            input << "v1" << std::endl;
+            input << "v2" << std::endl;
+            input << "v3\t1e1 1e2" << std::endl;
+            input << "v3" << std::endl;
+            input << "v1" << std::endl;
+            loop( input, output );
+            assert( output.str() == "!STORED!\n!STORED!\n0.01 0.1\n0.1 0.01\n!STORED!\n10 100\n!NOEMBED!\n" );
+        }
 
-	};  // test_xx
+        void test_04()
+        {
+            std::stringstream input, output;
+            input << "2 1" << std::endl;
+            input << "v1\t1e-2 1e-1" << std::endl;
+            input << "v2\t1e-1 1e-2" << std::endl;
+            input << "v1" << std::endl;
+            input << "v2" << std::endl;
+            input << "v3\t1e1 1e2" << std::endl;
+            input << "v3" << std::endl;
+            input << "v1" << std::endl;
+            loop( input, output );
+            assert( output.str() == "!STORED!\n!STORED!\n0.01\n0.1\n!STORED!\n10\n!NOEMBED!\n" );
+        }
 
-	void test()
-	{
-		test_xx::test_01();
-		test_xx::test_02();
-		test_xx::test_03();
-		test_xx::test_04();
-	}
+    };  // test_xx
+
+    void test()
+    {
+        test_xx::test_01();
+        test_xx::test_02();
+        test_xx::test_03();
+        test_xx::test_04();
+    }
 
 };  // LRUHWTestSpace
 
 int main()
 {
     LRUTestSpace::test();
-	LRUHWTestSpace::test();
+    LRUHWTestSpace::test();
     return 0;
 }
 
