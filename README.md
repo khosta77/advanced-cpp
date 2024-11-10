@@ -1,14 +1,15 @@
 # ДЗ1. LRUCache
 
-https://docs.google.com/document/d/18gMzbw4RjwLc12W5xyNt75EWdB_aawtPbloxd-vB_nM/edit?tab=t.0
+[Условие ДЗ1](https://docs.google.com/document/d/18gMzbw4RjwLc12W5xyNt75EWdB_aawtPbloxd-vB_nM/edit?tab=t.0)
 
 Необходимо было реализовать **LRUCache**( Least Recently Used Cache ) - main задание, дополнительно:
 
-* [X] Реализовать через `template`;
+* [X] LRU
 * [X] Использовать свою собственную *Хеш-таблицу*;
+* [ ] Использовать свою собственную *List*;
 * [X] Написать тесты.
 
-#### Комментарий по пунктам
+### Комментарий по пунктам
 
 1. :white_check_mark: , только я так понимаю шаблоны нельзя(не стоит) выносить в `.cpp`, они генерируют 
     свою версию кода для каждого варианта параметров, с которыми их используют.
@@ -19,22 +20,33 @@ https://docs.google.com/document/d/18gMzbw4RjwLc12W5xyNt75EWdB_aawtPbloxd-vB_nM/
 
 ## Сборка, запуск
 
-Сборка + компиляция проекта
+Сборка + запуск тестов
 
 ```cmd
-cmake .; make
+make
 ```
 
-Запуск
+если никакой ошибки не выведет, значит тесты пройдены
+
+Запуск в loop
 
 ```cmd
 ./main
 ```
 
-если никакой ошибки не выведет, значит тесты пройдены
-
+#### Комментарий по командам, данные блок не относится к ДЗ
 
 если потекут какие-то профайлинги....
+
 ```cmd
 find . -name "*.gcda" -print0 | xargs -0 rm
 ```
+
+Привести все к стандарту clang-form
+
+```cmd
+clang-format -i —style=file *.cpp *.hpp
+```
+
+офрмление в [VK](https://github.com/akrymov/technopark_common/blob/master/cppguide.md) мне нравится
+много больше
