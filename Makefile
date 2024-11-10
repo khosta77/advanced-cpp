@@ -25,5 +25,5 @@ $(TARGET):
 	$(CC) $(STD) -O2 $(W) main.cpp -o $(TARGET)
 
 clean:
-	#clang-format --dry-run --Werror --style=file *.cpp *.hpp
+	clang-format --dry-run --Werror --style=file *.cpp *.hpp
 	rm -rf test_lru main test_hashtable test_intrusive_list
