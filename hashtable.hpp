@@ -77,122 +77,115 @@ public:
 
   //// Iterators
   class iterator {
-  private:
-    using It = std::vector<Cell>::iterator;
+    private:
+      using It = typename std::vector<Cell>::iterator;
+      It _it;
+      It _end;
 
-    It _it;
-    It _end;
+      void skip_empty() {
+        while (_it != _end && _it->_state == CELL_EMPTY) {
+            ++_it; // Пропускаем пустые ячейки
+        }
+      }
 
   public:
-    iterator() = default;
-	iterator(const iterator& other) : _it(other._it), _end(other._end) {}
-    iterator(It it, It end) : _it(it), _end(end) {}
-	iterator& operator=( const iterator& other ) {
-	  if(this != &other) {
-		_it = other._it;
-		_end = other._end;
-	  }
-	  return *this;
-	}
+    iterator() : _it(), _end() {}
+    iterator(const iterator& other) : _it(other._it), _end(other._end) {}
+    iterator(It it, It end) : _it(it), _end(end) { skip_empty(); }
+
+    iterator& operator=(const iterator& other) {
+        if (this != &other) {
+            _it = other._it;
+            _end = other._end;
+            skip_empty(); // Пропустим пустые ячейки
+        }
+        return *this;
+    }
 
     bool operator!=(const iterator &other) const { return _it != other._it; }
     bool operator==(const iterator &other) const { return _it == other._it; }
 
     iterator &operator++() {
-      do {
         ++_it;
-      } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
-      return *this;
+        skip_empty();
+        return *this;
     }
 
     iterator operator++(int) {
-      iterator buffer;
-      do {
-        buffer = iterator(_it, _end);
-        ++_it;
-      } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
-      return buffer;
+        iterator temp = *this;
+        ++(*this);
+        return temp;
     }
 
     iterator &operator--() {
-      do {
         --_it;
-      } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
-      return *this;
+        skip_empty();
+        return *this;
     }
 
     iterator operator--(int) {
-      iterator buffer;
-      do {
-        buffer = this;
-        --_it;
-      } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
-      return buffer;
+        iterator temp = *this;
+        --(*this);
+        return temp;
     }
 
-    std::pair<K, T &> operator*() {
-      while ((((*_it)._state != CELL_KEY) and (_it != _end))) {
-        ++_it;
-      }
-      return {(*_it)._key, (T &)(*_it)._item};
-    }
+    std::pair<K, T &> operator*() { return {_it->_key, _it->_item}; }
   };
 
   class const_iterator {
-  private:
-    using const_It = std::vector<Cell>::iterator;
+    private:
+      using It = typename std::vector<Cell>::iterator;
+      It _it;
+      It _end;
 
-    const_It _it;
-    const_It _end;
+      void skip_empty() {
+        while (_it != _end && _it->_state == CELL_EMPTY) {
+            ++_it; // Пропускаем пустые ячейки
+        }
+      }
 
   public:
-    const_iterator(const_It it, const_It end) : _it(it), _end(end) {}
+    const_iterator() : _it(), _end() {}
+    const_iterator(const const_iterator& other) : _it(other._it), _end(other._end) {}
+    const_iterator(It it, It end) : _it(it), _end(end) { skip_empty(); }
 
-    bool operator!=(const const_iterator &other) const {
-      return _it != other._it;
+    const_iterator& operator=(const const_iterator& other) {
+        if (this != &other) {
+            _it = other._it;
+            _end = other._end;
+            skip_empty(); // Пропустим пустые ячейки
+        }
+        return *this;
     }
-    bool operator==(const const_iterator &other) const {
-      return _it == other._it;
-    }
+
+    bool operator!=(const const_iterator &other) const { return _it != other._it; }
+    bool operator==(const const_iterator &other) const { return _it == other._it; }
 
     const_iterator &operator++() {
-      do {
         ++_it;
-      } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
-      return *this;
+        skip_empty();
+        return *this;
     }
 
-    const_iterator operator++(int) {
-      const_iterator buffer;
-      do {
-        buffer = this;
-        ++_it;
-      } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
-      return buffer;
+    iterator operator++(int) {
+        iterator temp = *this;
+        ++(*this);
+        return temp;
     }
 
     const_iterator &operator--() {
-      do {
         --_it;
-      } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
-      return *this;
+        skip_empty();
+        return *this;
     }
 
     const_iterator operator--(int) {
-      const_iterator buffer;
-      do {
-        buffer = this;
-        --_it;
-      } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
-      return buffer;
+        iterator temp = *this;
+        --(*this);
+        return temp;
     }
 
-    const std::pair<K, T> operator*() {
-      while ((((*_it)._state != CELL_KEY) and (_it != _end))) {
-        ++_it;
-      }
-      return {(*_it)._key, (*_it)._item};
-    }
+    const std::pair<K, T> operator*() { return {_it->_key, _it->_item}; }
   };
 
   /** @brief begin - метод получения начала итератора
@@ -216,12 +209,7 @@ public:
   }
 
   //// Capacity
-  /** // TODO: Описание ???
-   * */
   bool empty() const noexcept { return (_size == 0); }
-
-  /** // TODO: Описание ???
-   * */
   size_t size() const noexcept { return _size; }
 
   //// Modifiers
@@ -289,7 +277,7 @@ public:
       ++cnt;
     }
 
-    throw; // TODO: Придумать ошибку
+    throw std::out_of_range("Out of key");
   }
 
   const T &at(const K &key) const { return this->at(key); }
