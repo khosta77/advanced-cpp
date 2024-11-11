@@ -9,3 +9,12 @@ main
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
+
+# Покрытие
+*.gcov
+*.gcda
+*.gcno
+
+test_hashtable.dSYM
+test_intrusive_list.dSYM
+test_lru.dSYM
