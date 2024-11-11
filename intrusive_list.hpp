@@ -357,9 +357,6 @@ private:
 
 public:
   void pop_front() {
-    if (_size == 0)
-      return;
-
     if (_size == 1)
       return pop_last_element();
 
@@ -370,10 +367,7 @@ public:
     delete node;
   }
 
-  void pop_back() {
-    if (_size == 0)
-      return;
-
+  void pop_back() { 
     if (_size == 1)
       return pop_last_element();
 

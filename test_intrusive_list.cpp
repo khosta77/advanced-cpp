@@ -4,57 +4,6 @@
 #include <list>
 #include <sstream>
 
-class TestException : std::exception {
-private:
-  std::string emsg;
-
-public:
-  explicit TestException(const std::string &msg) : emsg(msg) {}
-  const char *what() const noexcept override { return emsg.c_str(); }
-};
-
-namespace ListTestSpace {
-class ListEmpty : public TestException {
-public:
-  ListEmpty() : TestException("Список пустой!!!") {}
-};
-
-class ListNotEmpty : public TestException {
-public:
-  ListNotEmpty() : TestException("Список не пустой!!!") {}
-};
-
-class ListSizeNotExpected : public TestException {
-public:
-  ListSizeNotExpected(const size_t &size, const size_t &expected)
-      : TestException(("list.size() = " + std::to_string(size) +
-                       " not excepted: " + std::to_string(expected))) {}
-};
-
-class ListFrontNotLink : public TestException {
-public:
-  ListFrontNotLink() : TestException("C front что-то не так!!!") {}
-};
-
-class ListBackNotLink : public TestException {
-public:
-  ListBackNotLink() : TestException("C front что-то не так!!!") {}
-};
-
-class ListNotExceptedElement : public TestException {
-public:
-  ListNotExceptedElement(const std::string &felem, const std::string &efelem,
-                         const std::string &belem, const std::string &ebelem)
-      : TestException(("front( " + felem + " ) -> " + efelem + " | back( " +
-                       belem + " ) -> " + ebelem)) {}
-};
-
-class ListNotCurrentValue : public TestException {
-public:
-  ListNotCurrentValue(const int &a, const int &b)
-      : TestException(("Ожидаемые значения не равны!: " + std::to_string(a) +
-                       " != " + std::to_string(b))) {}
-};
 
 namespace check {
 std::vector<int> frame = {-3, -2, -1, 0, 1, 2, 3};
@@ -62,80 +11,48 @@ const size_t MIDDLE = 3;
 
 template <typename T> void front_and_back() {
   T lst;
-  // Проверка вообще есть ли элементы уже
-  if (!lst.empty())
-    throw ListNotEmpty();
-
-  // Проверка размера
-  if (lst.size() != 0)
-    throw ListSizeNotExpected(lst.size(), 0);
+  assert(lst.empty());
+  assert(lst.size() == 0);
 
   // Добавляем первый элемент
   lst.push_back(frame[MIDDLE]);
-  if (((lst.front() != frame[MIDDLE]) or (lst.back() != frame[MIDDLE]))) {
-    throw ListNotExceptedElement(
-        std::to_string(lst.front()), std::to_string(frame[MIDDLE]),
-        std::to_string(lst.back()), std::to_string(frame[MIDDLE]));
-  }
+  assert(((lst.front() == frame[MIDDLE]) and (lst.back() == frame[MIDDLE])));
+  assert(!lst.empty());
+  assert(lst.size() == 1);
 
-  // Если список все еще пустой -> ошибка
-  if (lst.empty())
-    throw ListEmpty();
-
-  // Размер должен быть 1
-  if (lst.size() != 1)
-    throw ListSizeNotExpected(lst.size(), 1);
-
-  // Проверяем ссылочность front
   lst.front() = 1;
-  if (((lst.front() != 1) or (lst.back() != 1)))
-    throw ListFrontNotLink();
+  assert(((lst.front() == 1) and (lst.back() == 1)));
 
-  // Проверяем ссылочность back
   lst.back() = -1;
-  if (((lst.front() != -1) or (lst.back() != -1)))
-    throw ListBackNotLink();
+  assert(((lst.front() == -1) and (lst.back() == -1)));
   lst.back() = frame[MIDDLE];
 
   // Проверяем заполнение вектора
-  for (size_t i = (MIDDLE - 1), j = (MIDDLE + 1), count = 1; j < frame.size();
-       --i, ++j) {
+  for (size_t i = (MIDDLE - 1), j = (MIDDLE + 1), count = 1; j < frame.size(); --i, ++j) {
     lst.push_front(frame[i]);
     lst.push_back(frame[j]);
     count += 2;
 
     // Проверка корректных значений
-    if (((lst.front() != frame[i]) or (lst.back() != frame[j])))
-      throw ListNotExceptedElement(
-          std::to_string(lst.front()), std::to_string(frame[i]),
-          std::to_string(lst.back()), std::to_string(frame[j]));
-
-    // Проверка размера
-    if (lst.size() != count)
-      throw ListSizeNotExpected(lst.size(), count);
+    assert(((lst.front() == frame[i]) and (lst.back() == frame[j])));
+    assert(lst.size() == count);
   }
 
   // удаление
-  for (size_t i = 1, j = (lst.size() - 2), count = lst.size(); i <= j;
-       ++i, --j) {
+  for (size_t i = 1, j = (lst.size() - 2), count = lst.size(); i <= j; ++i, --j) {
     lst.pop_front();
     lst.pop_back();
     count -= 2;
 
-    // Проверка корректных значений
-    if (((lst.front() != frame[i]) or (lst.back() != frame[j])))
-      throw ListNotExceptedElement(
-          std::to_string(lst.front()), std::to_string(frame[i]),
-          std::to_string(lst.back()), std::to_string(frame[j]));
-
-    // Проверка размера
-    if (lst.size() != count)
-      throw ListSizeNotExpected(lst.size(), count);
+    assert(((lst.front() == frame[i]) and (lst.back() == frame[j])));
+    assert(lst.size() == count);
   }
 
   lst.pop_front();
-  if (lst.size() != 0)
-    throw ListSizeNotExpected(lst.size(), 0);
+  assert(lst.size() == 0);
+  lst.push_back(frame[MIDDLE]);
+  lst.pop_back();
+  assert(lst.size() == 0);
 
   // Проверка очистки списка
   for (size_t i = (MIDDLE - 1), j = (MIDDLE + 1); j < frame.size(); --i, ++j) {
@@ -143,18 +60,11 @@ template <typename T> void front_and_back() {
     lst.push_back(frame[j]);
   }
 
-  if (lst.size() != (frame.size() - 1))
-    throw ListSizeNotExpected(lst.size(), (frame.size() - 1));
+  assert(lst.size() == (frame.size() - 1));
 
   lst.clear();
-
-  // Проверка вообще есть ли элементы уже
-  if (!lst.empty())
-    throw ListNotEmpty();
-
-  // Проверка размера
-  if (lst.size() != 0)
-    throw ListSizeNotExpected(lst.size(), 0);
+  assert(lst.empty());
+  assert(lst.size() == 0);
 }
 
 template <typename T> void inter() {
@@ -168,25 +78,20 @@ template <typename T> void inter() {
   //// Тест обычного итератора ++, -- ...
   auto vectorIt = frame.begin();
   auto listIt = lst.begin();
-  for (size_t i = 0, I = frame.size(); i < I; ++i, ++listIt, ++vectorIt) {
-    if (*listIt != *vectorIt)
-      throw ListNotCurrentValue(*listIt, *vectorIt);
-  }
+  for (size_t i = 0, I = frame.size(); i < I; ++i, ++listIt, ++vectorIt)
+    assert(*listIt == *vectorIt);
 
   vectorIt = frame.begin();
   listIt = lst.begin();
-  for (size_t i = 0, I = frame.size(); i < I; ++i, listIt++, vectorIt++) {
-    if (*listIt != *vectorIt)
-      throw ListNotCurrentValue(*listIt, *vectorIt);
-  }
+  for (size_t i = 0, I = frame.size(); i < I; ++i, listIt++, vectorIt++)
+    assert(*listIt == *vectorIt);
 
   auto vectorItEnd = frame.end();
   auto listItEnd = lst.end();
   for (size_t i = 0, I = frame.size(); i < I; ++i) {
     --listItEnd;
     --vectorItEnd;
-    if (*listItEnd != *vectorItEnd)
-      throw ListNotCurrentValue(*listItEnd, *vectorItEnd);
+    assert(*listItEnd == *vectorItEnd);
   }
 
   vectorItEnd = frame.end();
@@ -194,34 +99,26 @@ template <typename T> void inter() {
   for (size_t i = 0, I = frame.size(); i < I; ++i) {
     listItEnd--;
     vectorItEnd--;
-    if (*listItEnd != *vectorItEnd)
-      throw ListNotCurrentValue(*listItEnd, *vectorItEnd);
+    assert(*listItEnd == *vectorItEnd);
   }
 
   //// Тест обычного const итератора ++, -- ...
   auto vectorItConst = frame.cbegin();
   auto listItConst = lst.cbegin();
-  for (size_t i = 0, I = frame.size(); i < I;
-       ++i, ++listItConst, ++vectorItConst) {
-    if (*listItConst != *vectorItConst)
-      throw ListNotCurrentValue(*listItConst, *vectorItConst);
-  }
+  for (size_t i = 0, I = frame.size(); i < I; ++i, ++listItConst, ++vectorItConst)
+    assert(*listItConst == *vectorItConst);
 
   vectorItConst = frame.cbegin();
   listItConst = lst.cbegin();
-  for (size_t i = 0, I = frame.size(); i < I;
-       ++i, listItConst++, vectorItConst++) {
-    if (*listItConst != *vectorItConst)
-      throw ListNotCurrentValue(*listItConst, *vectorItConst);
-  }
+  for (size_t i = 0, I = frame.size(); i < I; ++i, listItConst++, vectorItConst++)
+    assert(*listItConst == *vectorItConst);
 
   auto vectorItEndConst = frame.cend();
   auto listItEndConst = lst.cend();
   for (size_t i = 0, I = frame.size(); i < I; ++i) {
     --listItEndConst;
     --vectorItEndConst;
-    if (*listItEndConst != *vectorItEndConst)
-      throw ListNotCurrentValue(*listItEndConst, *vectorItEndConst);
+    assert(*listItEndConst == *vectorItEndConst);
   }
 
   vectorItEndConst = frame.cend();
@@ -229,8 +126,7 @@ template <typename T> void inter() {
   for (size_t i = 0, I = frame.size(); i < I; ++i) {
     listItEndConst--;
     vectorItEndConst--;
-    if (*listItEndConst != *vectorItEndConst)
-      throw ListNotCurrentValue(*listItEndConst, *vectorItEndConst);
+    assert(*listItEndConst == *vectorItEndConst);
   }
 
   auto it = lst.begin();
@@ -241,8 +137,7 @@ template <typename T> void inter() {
   --it;
   for (const auto value : frame) {
     int x = *(it--);
-    if (value != x)
-      throw ListNotCurrentValue(value, x);
+    assert(value == x);
   }
 }
 
@@ -251,8 +146,7 @@ template <typename T> void insert() {
   auto it = lst.begin();
   for (size_t i = 0; i < frame.size(); ++i) {
     it = lst.insert(it, frame[i]);
-    if (*it != frame[i])
-      throw ListNotCurrentValue(*it, frame[i]);
+    assert(*it == frame[i]);
   }
 }
 
@@ -319,26 +213,19 @@ template <typename T> void insert() {
 
 }; // namespace check
 
-void test() {
+int test() {
   using mylist = List<int>;
   using stdlist = std::list<int>;
-
-  try {
-    check::front_and_back<mylist>();
-    check::front_and_back<stdlist>();
-    check::inter<mylist>();
-    check::inter<stdlist>();
-    check::insert<mylist>();
-    check::insert<stdlist>();
-    // check::splice();
-  } catch (const TestException &emsg) {
-    std::cout << emsg.what() << std::endl;
-  };
+  check::front_and_back<mylist>();
+  check::front_and_back<stdlist>();
+  check::inter<mylist>();
+  check::inter<stdlist>();
+  check::insert<mylist>();
+  check::insert<stdlist>();
+  // check::splice();
+  return 0;
 }
 
-}; // namespace ListTestSpace
-
 int main() {
-  ListTestSpace::test();
-  return 0;
+  return test();
 }
