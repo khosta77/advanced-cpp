@@ -84,7 +84,16 @@ public:
     It _end;
 
   public:
+    iterator() = default;
+	iterator(const iterator& other) : _it(other._it), _end(other._end) {}
     iterator(It it, It end) : _it(it), _end(end) {}
+	iterator& operator=( const iterator& other ) {
+	  if(this != &other) {
+		_it = other._it;
+		_end = other._end;
+	  }
+	  return *this;
+	}
 
     bool operator!=(const iterator &other) const { return _it != other._it; }
     bool operator==(const iterator &other) const { return _it == other._it; }
@@ -99,7 +108,7 @@ public:
     iterator operator++(int) {
       iterator buffer;
       do {
-        buffer = this;
+        buffer = iterator(_it, _end);
         ++_it;
       } while ((((*_it)._state != CELL_KEY) and (_it != _end)));
       return buffer;
@@ -341,20 +350,20 @@ public:
    * */
   void reserve(const size_t &count) {
     _count = count;
-    if (count <= _table.size())
-      return;
-    std::vector<Cell> buffer(count);
-    for (size_t i = 0, hash = 0, cnt = 0; i < _table.size(); ++i) {
-      if (_table[i]._state == CELL_KEY) {
-        hash = (_table[i]._hash % buffer.size());
-        while (cnt = 0, buffer[hash]._state != CELL_EMPTY) {
-          hash = ((hash + ++cnt) % buffer.size());
+    if (count > _table.size()) {
+      std::vector<Cell> buffer(count);
+      for (size_t i = 0, hash = 0, cnt = 0; i < _table.size(); ++i) {
+        if (_table[i]._state == CELL_KEY) {
+          hash = (_table[i]._hash % buffer.size());
+          while (cnt = 0, buffer[hash]._state != CELL_EMPTY) {
+            hash = ((hash + ++cnt) % buffer.size());
+          }
+          buffer[hash] = _table[i];
         }
-        buffer[hash] = _table[i];
       }
-    }
-    _table = std::move(buffer);
-    buffer.clear();
+      _table = std::move(buffer);
+      buffer.clear();
+	}
   }
 };
 
