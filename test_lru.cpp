@@ -132,6 +132,26 @@ void test_04() {
          "!STORED!\n!STORED!\n0.01\n0.1\n!STORED!\n10\n!NOEMBED!\n");
 }
 
+void test_05() {
+  std::stringstream input, output;
+  input << "2 1" << std::endl;
+  input << "v1\t" << std::endl;
+  loop(input, output);
+  assert(output.str() == "!STORERR!\n");
+}
+
+void test_06() {
+  std::stringstream input, output;
+  input << "2 3" << std::endl;
+  input << "v1\t1e3" << std::endl;
+  input << "v1" << std::endl;
+  input << "v1\t1e2" << std::endl;
+  input << "v1" << std::endl;
+  loop(input, output);
+  assert(output.str() ==
+         "!STORED!\n1000\n!STORED!\n1000 100\n");
+}
+
 }; // namespace test_xx
 
 void test() {
@@ -139,6 +159,8 @@ void test() {
   test_xx::test_02();
   test_xx::test_03();
   test_xx::test_04();
+  test_xx::test_05();
+  test_xx::test_06();
 }
 
 }; // namespace LRUHWTestSpace
