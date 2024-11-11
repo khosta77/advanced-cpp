@@ -148,8 +148,7 @@ void test_06() {
   input << "v1\t1e2" << std::endl;
   input << "v1" << std::endl;
   loop(input, output);
-  assert(output.str() ==
-         "!STORED!\n1000\n!STORED!\n1000 100\n");
+  assert(output.str() == "!STORED!\n1000\n!STORED!\n1000 100\n");
 }
 
 }; // namespace test_xx

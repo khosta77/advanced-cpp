@@ -77,112 +77,117 @@ public:
 
   //// Iterators
   class iterator {
-    private:
-      using It = typename std::vector<Cell>::iterator;
-      It _it;
-      It _end;
+  private:
+    using It = typename std::vector<Cell>::iterator;
+    It _it;
+    It _end;
 
-      void skip_empty() {
-        while (_it != _end && _it->_state == CELL_EMPTY) {
-            ++_it; // Пропускаем пустые ячейки
-        }
+    void skip_empty() {
+      while (_it != _end && _it->_state == CELL_EMPTY) {
+        ++_it; // Пропускаем пустые ячейки
       }
+    }
 
   public:
     iterator() : _it(), _end() {}
-    iterator(const iterator& other) : _it(other._it), _end(other._end) {}
+    iterator(const iterator &other) : _it(other._it), _end(other._end) {}
     iterator(It it, It end) : _it(it), _end(end) { skip_empty(); }
 
-    iterator& operator=(const iterator& other) {
-        if (this != &other) {
-            _it = other._it;
-            _end = other._end;
-            skip_empty(); // Пропустим пустые ячейки
-        }
-        return *this;
+    iterator &operator=(const iterator &other) {
+      if (this != &other) {
+        _it = other._it;
+        _end = other._end;
+        skip_empty(); // Пропустим пустые ячейки
+      }
+      return *this;
     }
 
     bool operator!=(const iterator &other) const { return _it != other._it; }
     bool operator==(const iterator &other) const { return _it == other._it; }
 
     iterator &operator++() {
-        ++_it;
-        skip_empty();
-        return *this;
+      ++_it;
+      skip_empty();
+      return *this;
     }
 
     iterator operator++(int) {
-        iterator temp = *this;
-        ++(*this);
-        return temp;
+      iterator temp = *this;
+      ++(*this);
+      return temp;
     }
 
     iterator &operator--() {
-        --_it;
-        skip_empty();
-        return *this;
+      --_it;
+      skip_empty();
+      return *this;
     }
 
     iterator operator--(int) {
-        iterator temp = *this;
-        --(*this);
-        return temp;
+      iterator temp = *this;
+      --(*this);
+      return temp;
     }
 
     std::pair<K, T &> operator*() { return {_it->_key, _it->_item}; }
   };
 
   class const_iterator {
-    private:
-      using It = typename std::vector<Cell>::iterator;
-      It _it;
-      It _end;
+  private:
+    using It = typename std::vector<Cell>::iterator;
+    It _it;
+    It _end;
 
-      void skip_empty() {
-        while (_it != _end && _it->_state == CELL_EMPTY) {
-            ++_it; // Пропускаем пустые ячейки
-        }
+    void skip_empty() {
+      while (_it != _end && _it->_state == CELL_EMPTY) {
+        ++_it; // Пропускаем пустые ячейки
       }
+    }
 
   public:
     const_iterator() : _it(), _end() {}
-    const_iterator(const const_iterator& other) : _it(other._it), _end(other._end) {}
+    const_iterator(const const_iterator &other)
+        : _it(other._it), _end(other._end) {}
     const_iterator(It it, It end) : _it(it), _end(end) { skip_empty(); }
 
-    const_iterator& operator=(const const_iterator& other) {
-        if (this != &other) {
-            _it = other._it;
-            _end = other._end;
-            skip_empty(); // Пропустим пустые ячейки
-        }
-        return *this;
+    const_iterator &operator=(const const_iterator &other) {
+      if (this != &other) {
+        _it = other._it;
+        _end = other._end;
+        skip_empty(); // Пропустим пустые ячейки
+      }
+      return *this;
     }
 
-    bool operator!=(const const_iterator &other) const { return _it != other._it; }
-    bool operator==(const const_iterator &other) const { return _it == other._it; }
+    bool operator!=(const const_iterator &other) const {
+      return _it != other._it;
+    }
+    bool operator==(const const_iterator &other) const {
+      return _it == other._it;
+    }
 
     const_iterator &operator++() {
-        ++_it;
-        skip_empty();
-        return *this;
+      ++_it;
+      skip_empty();
+      return *this;
     }
 
     iterator operator++(int) {
-        iterator temp = *this;
-        ++(*this);
-        return temp;
+      iterator temp = *this;
+      ++(*this);
+      return temp;
     }
 
     const_iterator &operator--() {
-        --_it;
-        skip_empty();
-        return *this;
+      --_it;
+      skip_empty();
+      return *this;
     }
 
     const_iterator operator--(int) {
-        iterator temp = *this;
-        --(*this);
-        return temp;
+      iterator temp = *this;
+      --(*this);
+      return temp;
     }
 
     const std::pair<K, T> operator*() { return {_it->_key, _it->_item}; }
@@ -351,7 +356,7 @@ public:
       }
       _table = std::move(buffer);
       buffer.clear();
-	}
+    }
   }
 };
 

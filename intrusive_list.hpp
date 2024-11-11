@@ -367,7 +367,7 @@ public:
     delete node;
   }
 
-  void pop_back() { 
+  void pop_back() {
     if (_size == 1)
       return pop_last_element();
 

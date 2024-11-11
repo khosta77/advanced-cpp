@@ -4,7 +4,6 @@
 #include <list>
 #include <sstream>
 
-
 namespace check {
 std::vector<int> frame = {-3, -2, -1, 0, 1, 2, 3};
 const size_t MIDDLE = 3;
@@ -28,7 +27,8 @@ template <typename T> void front_and_back() {
   lst.back() = frame[MIDDLE];
 
   // Проверяем заполнение вектора
-  for (size_t i = (MIDDLE - 1), j = (MIDDLE + 1), count = 1; j < frame.size(); --i, ++j) {
+  for (size_t i = (MIDDLE - 1), j = (MIDDLE + 1), count = 1; j < frame.size();
+       --i, ++j) {
     lst.push_front(frame[i]);
     lst.push_back(frame[j]);
     count += 2;
@@ -39,7 +39,8 @@ template <typename T> void front_and_back() {
   }
 
   // удаление
-  for (size_t i = 1, j = (lst.size() - 2), count = lst.size(); i <= j; ++i, --j) {
+  for (size_t i = 1, j = (lst.size() - 2), count = lst.size(); i <= j;
+       ++i, --j) {
     lst.pop_front();
     lst.pop_back();
     count -= 2;
@@ -105,12 +106,14 @@ template <typename T> void inter() {
   //// Тест обычного const итератора ++, -- ...
   auto vectorItConst = frame.cbegin();
   auto listItConst = lst.cbegin();
-  for (size_t i = 0, I = frame.size(); i < I; ++i, ++listItConst, ++vectorItConst)
+  for (size_t i = 0, I = frame.size(); i < I;
+       ++i, ++listItConst, ++vectorItConst)
     assert(*listItConst == *vectorItConst);
 
   vectorItConst = frame.cbegin();
   listItConst = lst.cbegin();
-  for (size_t i = 0, I = frame.size(); i < I; ++i, listItConst++, vectorItConst++)
+  for (size_t i = 0, I = frame.size(); i < I;
+       ++i, listItConst++, vectorItConst++)
     assert(*listItConst == *vectorItConst);
 
   auto vectorItEndConst = frame.cend();
@@ -226,6 +229,4 @@ int test() {
   return 0;
 }
 
-int main() {
-  return test();
-}
+int main() { return test(); }

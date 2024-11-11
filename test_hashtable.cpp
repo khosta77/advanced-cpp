@@ -3,15 +3,15 @@
 #include <cassert>
 #include <sstream>
 #include <string>
-#include <sstream>
 
 namespace check {
 std::vector<std::pair<std::string, int>> frame = {
     {"a", 10}, {"b", 20}, {"c", 30}};
 
-std::ostream& operator<<(std::ostream& os, const std::pair<std::string, int>& pr) {
-	os << pr.first << ' ' << pr.second << std::endl;
-	return os;
+std::ostream &operator<<(std::ostream &os,
+                         const std::pair<std::string, int> &pr) {
+  os << pr.first << ' ' << pr.second << std::endl;
+  return os;
 }
 
 template <typename T> void insert() {
@@ -45,7 +45,7 @@ template <typename T> void insert() {
   }
 
   for (auto it = table.begin(); it != table.end(); it++) {
-	assert(it == table.find((*it).first));
+    assert(it == table.find((*it).first));
   }
 
   table.clear();
@@ -58,11 +58,10 @@ template <typename T> void erase() {
     table.insert(std::pair<std::string, int>{key, value});
 
   for (const auto &[key, value] : frame)
-	assert(table.erase(key));
+    assert(table.erase(key));
   assert(table.erase(frame[0].first) == 0);
   table.clear();
 }
-
 
 template <typename T> void clear() {
   T table(10);
@@ -136,6 +135,4 @@ int test() {
   return 0;
 }
 
-int main() {
-  return test();
-}
+int main() { return test(); }
