@@ -7,7 +7,7 @@ SANITIZE=-fsanitize=address
 all: clean $(TARGET)
 
 $(TARGET):
-	$(CC) $(STD) -O2 $(W) units/main.cpp -o $(TARGET)
+	$(CC) $(STD) -O2 units/main.cpp -o $(TARGET)
 
 build:
 	$(TARGET)
