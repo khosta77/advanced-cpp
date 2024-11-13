@@ -24,5 +24,4 @@ public:
             "ECONOMY" ) {}
 };
 
-
 #endif  // UNITS_PASSANGERS_HPP_
