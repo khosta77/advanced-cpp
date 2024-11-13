@@ -43,6 +43,6 @@ $(TARGET):
 	$(CC) $(STD) -O2 $(W) units/main.cpp -o $(TARGET)
 
 clean:
-	#clang-format --dry-run --Werror --style=file *.cpp *.hpp
+	clang-format --dry-run --Werror --style=file units/*.cpp units/*.hpp
 	rm -rf main test_crew_members test_passengers test_plane
 
