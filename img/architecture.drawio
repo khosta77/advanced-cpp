@@ -1,0 +1,121 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0.1 Safari/605.1.15" version="24.8.6">
+  <diagram name="Страница — 1" id="FZK4GOTItuj6umQPt5_W">
+    <mxGraphModel dx="1710" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="10" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;startArrow=diamondThin;startFill=1;endArrow=open;endFill=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-1" target="xYAXx2yJQD7jRk_qfcEd-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-1" value="Passenger" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1485" y="810" width="330" height="310" as="geometry">
+            <mxRectangle x="340" y="270" width="100" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-3" value="&lt;div&gt;&lt;b&gt;private&lt;/b&gt;:&lt;/div&gt;&lt;div&gt;* _id&lt;/div&gt;&lt;div&gt;* _bags : std::array&amp;lt;Bag, 4&amp;gt; - сумки&lt;/div&gt;* _handBag - макс. кол-во ручной клади в зависимости от класс&lt;div&gt;* _handBagValue - макс. значение ручное клади&lt;br&gt;&lt;/div&gt;&lt;div&gt;* _bag - макс. кол-во в зависмости от класса&lt;br&gt;&lt;/div&gt;&lt;div&gt;* _bagValue - &amp;nbsp;макс. значение багажа&lt;/div&gt;&lt;div&gt;&lt;b&gt;public&lt;/b&gt;:&lt;/div&gt;&lt;div&gt;* name - имя класса&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-1">
+          <mxGeometry y="20" width="330" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-6" value="&lt;b&gt;private:&lt;/b&gt;&lt;div&gt;* check(...) : bool - проверка корректный ли вообще провозит пассажир&lt;/div&gt;&lt;div&gt;&lt;b&gt;public:&lt;/b&gt;&lt;/div&gt;&lt;div&gt;* Constructor(...) - единственный с парметрами через который происзодит инициализация объекта&lt;/div&gt;&lt;div&gt;&lt;div&gt;* WillWeBeAbleToRegisterIt() : bool - на основе введенных данных проверяет вообще может ли быть добавлен пассажир&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-1">
+          <mxGeometry y="170" width="330" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-9" value="" style="endArrow=open;html=1;rounded=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;endFill=0;startArrow=diamondThin;startFill=0;" edge="1" parent="xYAXx2yJQD7jRk_qfcEd-1" target="xYAXx2yJQD7jRk_qfcEd-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint y="60" as="sourcePoint" />
+            <mxPoint x="50" y="10" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;startArrow=diamondThin;startFill=1;endArrow=open;endFill=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-2" target="xYAXx2yJQD7jRk_qfcEd-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-2" value="Bag" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="810" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-7" value="public:&lt;div&gt;*&amp;nbsp;weight : size_t - вес&lt;/div&gt;&lt;div&gt;*&amp;nbsp;passengerId : size_t - id&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-2">
+          <mxGeometry y="20" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-10" value="Pilot" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="1215" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-11" value="* Конструктор для объекта &quot;PILOT&quot;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-10">
+          <mxGeometry y="23" width="180" height="77" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-12" value="FlightAttendant" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1364" y="1215" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-13" value="* Конструктор для объекта &quot;FLIGHT_ATTENDANT&lt;span style=&quot;caret-color: rgba(0, 0, 0, 0); color: rgba(0, 0, 0, 0); font-family: monospace; font-size: 0px; white-space: nowrap;&quot;&gt;3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20value%3D%22Pilot%22%20style%3D%22swimlane%3BwhiteSpace%3Dwrap%3Bhtml%3D1%3B%22%20vertex%3D%221%22%20parent%3D%221%22%3E%3CmxGeometry%20x%3D%2260%22%20y%3D%22530%22%20width%3D%22180%22%20height%3D%22100%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3CmxCell%20id%3D%223%22%20value%3D%22*%20%D0%9A%D0%BE%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%82%D0%BE%D1%80%20%D0%B4%D0%BB%D1%8F%20%D0%BE%D0%B1%D1%8A%D0%B5%D0%BA%D1%82%D0%B0%20%26quot%3BPILOT%26quot%3B%22%20style%3D%22rounded%3D0%3BwhiteSpace%3Dwrap%3Bhtml%3D1%3Balign%3Dleft%3B%22%20vertex%3D%221%22%20parent%3D%222%22%3E%3CmxGeometry%20y%3D%2223%22%20width%3D%22180%22%20height%3D%2277%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E&lt;/span&gt;&quot;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-12">
+          <mxGeometry y="23" width="180" height="77" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-14" target="xYAXx2yJQD7jRk_qfcEd-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-14" value="FirstClass" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="1215" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-15" value="* Конструктор для объекта &quot;FIRST_CLASS&quot;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-14">
+          <mxGeometry y="23" width="180" height="77" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-16" value="Economy" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1957" y="1215" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-17" value="* Конструктор для объекта &quot;ECONOMY&quot;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-16">
+          <mxGeometry y="23" width="180" height="77" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-18" value="Business" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="1215" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-19" value="* Конструктор для объекта &quot;BUSINESS&quot;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-18">
+          <mxGeometry y="23" width="180" height="77" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.339;entryY=0.979;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=block;endFill=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-12" target="xYAXx2yJQD7jRk_qfcEd-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.642;entryY=0.971;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=block;endFill=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-18" target="xYAXx2yJQD7jRk_qfcEd-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.156;entryY=0.979;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=block;endFill=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-10" target="xYAXx2yJQD7jRk_qfcEd-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1260.5" y="1150" />
+              <mxPoint x="1536.5" y="1150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.862;entryY=0.993;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=block;endFill=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-16" target="xYAXx2yJQD7jRk_qfcEd-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2047.5" y="1150" />
+              <mxPoint x="1769.5" y="1150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=diamondThin;startFill=1;endArrow=open;endFill=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-29" target="xYAXx2yJQD7jRk_qfcEd-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-29" value="Segment" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="850" y="810" width="290" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-31" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;private:&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;* currentWeight : size_t - текущее заполнение грузового отсека&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;* maxWieght : size_t - макс вмистительность отсека&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;* bags_group : std::vector&amp;lt;std::list&amp;lt;Bag&amp;gt;&amp;gt; - багаж, номер i в векторе равен массе сумки, а в списке хранятся несколько сумок одного размера. Список нужен для того чтобы можно было быстро удалить крайний элемент&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-29">
+          <mxGeometry y="20" width="290" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-32" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;private:&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;* fillAdjacentPairs(const size_t &amp;amp;neededFreeSpace) std::vector&amp;lt;std::pair&amp;lt;size_t, size_t&amp;gt;&amp;gt; - метод сборки сумок, которые можем оставить в аеропорту&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;* checkWeight(...) : bool метод проверяет помещается ли багаж в грузовой отсек.&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;public:&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;*&amp;nbsp;append(const std::array&amp;lt;Bag, 4&amp;gt; &amp;amp;bags) : std::pair&amp;lt;bool, bool&amp;gt; - добавление багаж в отсек, два true - значит все успешно, если есть falsr значит надо чей-то груз оставить.&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;div&gt;* findFreeSpace(const Bag &amp;amp;bag, std::ostream &amp;amp;out) : void - метод определяет какой груз оптимально убрать(определяем какие самые тяжелые сумки есть и убираем их. Логично, что чем тяжелее сумка, тем меньши их надо будет убрать)&lt;/div&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-29">
+          <mxGeometry y="170" width="290" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-30" value="Plane" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="350" width="540" height="410" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-34" value="&lt;div&gt;* class_segment : std::unordered_map&amp;lt;std::string, Segment&amp;gt; - грузовой отсек&lt;/div&gt;&lt;div&gt;* const std::string fcs,&amp;nbsp;bcs,&amp;nbsp;ecs : const std::string - имена отсеков&lt;br&gt;&lt;/div&gt;&lt;div&gt;* MAX_PASSANGER : size_t - макс. кол-во пассажиров(считается в конструкторе)&lt;/div&gt;&lt;div&gt;* thePlane : std::vector&amp;lt;Passenger *&amp;gt; - вектор пассажиров, какие есть на самолете, по условию нужно их хранить&lt;/div&gt;&lt;div&gt;* passenger_size : std::unordered_map&amp;lt;std::string, std::pair&amp;lt;size_t, size_t&amp;gt;&amp;gt; &amp;nbsp;- колличество пассажиров, чтобы не было такого что кого было зарегестрировано больше чем задано&lt;br&gt;&lt;/div&gt;&lt;div&gt;* lastId : size_t - последний пассажир, не обехательно зарегестрированный&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-30">
+          <mxGeometry y="20" width="540" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-37" value="&lt;b&gt;private:&lt;/b&gt;&lt;div&gt;* init_class_segment(std::istream &amp;amp;in) : void - метод инициализации грузовых отсеков&lt;/div&gt;&lt;div&gt;* unpackBagsFromLine(const size_t &amp;amp;id, const std::vector&amp;lt;std::string&amp;gt; &amp;amp;words) : std::array&amp;lt;Bag, 4&amp;gt; - метод, для извлечения из входной строки всего багажа&lt;/div&gt;&lt;div&gt;* template &amp;lt;typename T&amp;gt; toRegister(std::ostream &amp;amp;out, const std::string &amp;amp;type, const size_t &amp;amp;id, const std::array&amp;lt;Bag, 4&amp;gt; &amp;amp;bags, const std::string &amp;amp;cs) : bool - метод для проверки можно ли заргестрировать пассажира и его регистрации, шаблоный, так как пассажир может быть кем угодно&lt;/div&gt;&lt;div&gt;* &amp;nbsp;template &amp;lt;typename T&amp;gt; put(std::ostream &amp;amp;out, const std::string &amp;amp;type, const std::string &amp;amp;true_type, const std::array&amp;lt;Bag, 4&amp;gt; &amp;amp;bags, const std::string &amp;amp;cs) : void - проверка на заполнение и вызов toRegister&lt;/div&gt;&lt;div&gt;* &amp;nbsp;void passengerUpBoard(std::ostream &amp;amp;out, const std::vector&amp;lt;std::string&amp;gt; &amp;amp;passenger) : void - метод выполняемый в цикле из него осуществляется вызов проверок какого пассажира проводим регистрацию&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;* boarding(std::istream &amp;amp;in, std::ostream &amp;amp;out) : void - загрузка пассажиров, в этом методе цикл, которой прокручивает вход и вызывает методы инициализации пассажиров&lt;/div&gt;&lt;div&gt;* &amp;nbsp; void calcMAX_PASSENGER() : void - расчет максимального количества пассажиров&lt;/div&gt;&lt;div&gt;&lt;b&gt;public:&lt;/b&gt;&lt;/div&gt;&lt;div&gt;load(std::istream &amp;amp;in, std::ostream &amp;amp;out) : int - цикл загрузки самолета&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="xYAXx2yJQD7jRk_qfcEd-30">
+          <mxGeometry y="140" width="540" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="xYAXx2yJQD7jRk_qfcEd-33" value="" style="endArrow=open;html=1;rounded=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;endFill=0;startArrow=diamondThin;startFill=0;exitX=1.006;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="xYAXx2yJQD7jRk_qfcEd-31" target="xYAXx2yJQD7jRk_qfcEd-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1186" y="870" as="sourcePoint" />
+            <mxPoint x="1130" y="870" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
