@@ -318,6 +318,7 @@ void loop(std::istream &in, std::ostream &out) {
   LRUCacheForHW1 cache(N, size);
 
   std::string line;
+  in.ignore();
   while (std::getline(in, line)) {
     if (line.empty())
       continue;
