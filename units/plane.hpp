@@ -13,7 +13,7 @@
 #include "passengers.hpp"
 #include "unit.hpp"
 
-struct Segment {
+class Segment {
 private:
   size_t currentWeight;
   size_t maxWieght;
