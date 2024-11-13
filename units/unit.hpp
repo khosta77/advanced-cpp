@@ -11,7 +11,6 @@ struct Bag
 
 	Bag( const size_t& w = 0, const size_t& id = 0 ) : weight(w), passengerId(id) {}
     Bag(const Bag& other) : weight(other.weight), passengerId(other.passengerId) {}
-    ~Bag() = default;
     Bag& operator=( const Bag& other )
     {
         if( this != &other )
