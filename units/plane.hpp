@@ -188,11 +188,11 @@ private:
             return false;
         }
         std::pair<bool, bool> bool_p = class_segment[cs].append( bags );
-        if( bool_p.first and bool_p.second )
+        if( ( ( bool_p.first and bool_p.second ) or ( bool_p.first and !bool_p.second and passenger->name == "ECONOMY" ) ) )
+        {
+            thePlane.push_back(passenger);
             return true;
-
-        if( bool_p.first and !bool_p.second and passenger->name == "ECONOMY" )
-            return true;
+        }
 
         if( !bool_p.first )
             class_segment[ecs].findFreeSpace(bags[2], out);
@@ -200,6 +200,7 @@ private:
         if( !bool_p.second )
             class_segment[ecs].findFreeSpace(bags[3], out);
 
+        thePlane.push_back(passenger);
         return true;
     }
 
@@ -221,7 +222,7 @@ private:
 
     void passengerUpBoard( std::ostream& out, const std::vector<std::string>& passenger )
     {
-        if( thePlane.size() > MAX_PASSANGER )
+        if( thePlane.size() >= MAX_PASSANGER )
         {
             out << std::format( "!!CANT REGISTER {} PASSENGER, ID = {}!!\n", passenger[0], lastId );
             return;
