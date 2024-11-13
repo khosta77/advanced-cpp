@@ -15,6 +15,9 @@ void test()
     assert( !pilot01->WillWeBeAbleToRegisterIt() );
     assert( pilot02->WillWeBeAbleToRegisterIt() );
 
+    delete pilot01;
+    delete pilot02;
+
     Passenger *flight_attendant01 = new FlightAttendant( 20, bags_not );
     Passenger *flight_attendant02 = new FlightAttendant( 12, bags_yes );
 
@@ -24,8 +27,6 @@ void test()
     assert( !flight_attendant01->WillWeBeAbleToRegisterIt() );
     assert( flight_attendant02->WillWeBeAbleToRegisterIt() );
 
-    delete pilot01;
-    delete pilot02;
     delete flight_attendant01;
     delete flight_attendant02;
 }
