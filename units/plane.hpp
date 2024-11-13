@@ -174,22 +174,6 @@ private:
     std::vector<Passenger*> thePlane;
 
     std::unordered_map<std::string, std::pair<size_t, size_t>> passenger_size;
-#if 0
-    const size_t MAX_PILOT_PASSANGER = 2;
-    size_t pilot_passanger = 0;
-
-    const size_t MAX_FLIGHT_ATTENDANT_PASSANGER = 6;
-    size_t flight_attendant_passanger = 0;
-
-    const size_t MAX_FIRST_CLASS_PASSANGER = 4;
-    size_t first_class_passanger = 0;
-
-    const size_t MAX_BUSINESS_PASSANGER = 10;
-    size_t business_passanger = 0;
-
-    const size_t MAX_ECONOMY_PASSANGER = 200;
-    size_t economy_passanger = 0;
-#endif
     size_t lastId;
 
     template<typename T>
