@@ -30,7 +30,7 @@ class Passenger
 {
 private:
 
-    size_t _id;
+    [[maybe_unused]] size_t _id;
     std::array<Bag, 4> _bags;
 
     size_t _handBag;
