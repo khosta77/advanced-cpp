@@ -1,5 +1,4 @@
 #include <cassert>
-#include <iostream>
 #include "plane.hpp"
 
 void test()
@@ -28,16 +27,14 @@ void test()
     input << "FIRST_CLASS 30 30 200 200" << std::endl;
     input << "FIRST_CLASS 0 0 850 100" << std::endl;
 	plane.load( input, output );
-	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 12!!\n";
-	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 6!!\n";
-	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 11!!\n";
-	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 9!!\n";
-	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 3!!\n";
-	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 10!!\n";
-	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 7!!\n";
-
+	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 12!!" << std::endl;
+	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 6!!" << std::endl;
+	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 11!!" << std::endl;
+	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 9!!" << std::endl;
+	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 3!!" << std::endl;
+	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 10!!" << std::endl;
+	true_output << "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = 7!!" << std::endl;
 	assert(output.str() == true_output.str());
-
 }
 
 int main()
