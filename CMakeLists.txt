@@ -1,15 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
-project(HWx)
+project(prep-to-control-work-2)
 
-# Выставить версию с++20
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+SET(CMAKE_CXX_FLAGS_RELEASE "-std=c++20 -O0 -Wall")
 
-SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
-
-# Добавление исполняемого файла с именем main.out
-add_executable(
-        main.out
-        ./project/main.cpp
-    )
-
+add_executable(bind.out ./project/bind.cpp)
+add_executable(function.out ./project/function.cpp)
+add_executable(fusion.out ./project/fusion.cpp)
+add_executable(sfinae.out ./project/sfinae.cpp)
