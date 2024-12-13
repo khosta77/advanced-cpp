@@ -1,0 +1,7 @@
+syntax = "proto2";
+
+message SearchResult {
+    optional int32 docs_count = 1;
+    optional int32 relevant_docs = 2;
+}
+
