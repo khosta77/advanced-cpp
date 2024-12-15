@@ -43,10 +43,40 @@ std::string Serialize( const FusionT& fusion_obj )
     return json_obj.dump();
 }
 
+template<typename FusionT>
+FusionT Deserialize(std::string_view json_str)
+{
+    Json json_obj = Json::parse(json_str);
+    FusionT fusion_obj{};
+
+    boost::fusion::for_each(
+        boost::mpl::range_c<unsigned, 0, boost::fusion::result_of::size<FusionT>::value>(),
+        [&]( auto index )
+        {
+            using type = typename boost::fusion::result_of::value_at<FusionT, decltype(index)>::type;
+
+            const auto name = boost::fusion::extension::struct_member_name<FusionT,index>::call();
+            const auto value = json_obj[name].template get<type>();
+
+            boost::fusion::at_c<index>(fusion_obj) = value;
+        }
+    );
+
+    return fusion_obj;
+}
+
 int main()
 {
     pkg::Ranks ranks = {1, 2, 3, "example"};
     std::string json_str = Serialize(ranks);
     std::cout << "Serialized JSON: " << json_str << std::endl;
+
+    auto deserialized_ranks = Deserialize<pkg::Ranks>(json_str);
+    std::cout << "Deserialized Ranks: "
+              << deserialized_ranks.r1 << ", "
+              << deserialized_ranks.r2 << ", "
+              << deserialized_ranks.r3 << ", "
+              << deserialized_ranks.some_str << std::endl;
+
     return 0;
 }
