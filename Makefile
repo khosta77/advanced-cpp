@@ -7,6 +7,9 @@ CXXFLAGS=-I/opt/homebrew/opt/boost/include
 
 all: clean test clean $(TARGET)
 
+install:
+	git clone git@github.com:nlohmann/json.git
+
 test:
 	$(CC) $(CXXFLAGS) --coverage -g -O0 $(SANITIZE) $(STD) $(W) main.cpp -o test_main
 	./test_main
