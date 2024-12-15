@@ -3,13 +3,13 @@
 
 # Выход программы
 main
+test_main
 *.out
 
 # Файлы CMAKE
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
-Makefile
 
 # Покрытие
 *.gcov
