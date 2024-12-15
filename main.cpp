@@ -47,49 +47,6 @@ BOOST_FUSION_DEFINE_STRUCT(
     (std::vector<pkg::S1>, s1_vals)
 )
 
-std::ostream& operator<<( std::ostream& os, const std::vector<int>& rhs )
-{
-    os << "[";
-    for( size_t i = 0, I = rhs.size(), I_ = ( I - 1 ); i < I; ++i )
-    {
-        os << rhs[i];
-        if( i != I_ )
-            os << ", ";
-    }
-    os << "]";
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const std::vector<pkg::S1>& rhs )
-{
-    os << "[";
-    for( size_t i = 0, I = rhs.size(), I_ = ( I - 1 ); i < I; ++i )
-    {
-        os << "{\"r0\": " << rhs[i].r0;
-        if( i != I_ )
-            os << "}, ";
-        else
-            os << "}";
-    }
-    os << "]";
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const pkg::S3& rhs )
-{
-    os << "{\n";
-    os << "\t\"r1\": " << rhs.r1 << ",\n";
-    os << "\t\"r2\": " << rhs.r2 << ",\n";
-    os << "\t\"some_str\": " << rhs.some_str << ",\n";
-    os << "\t\"vals\": " << rhs.vals << ",\n";
-    os << "\t\"s2_val\": {\"val\":" << rhs.s2_val.val << "},\n";
-    os << "\t\"s1_vals\": " << rhs.s1_vals << ",\n";
-    os << "}\n";
-    return os;
-}
-
-
-
 template <typename T>
 using is_fusion_struct = std::is_same<typename boost::fusion::traits::tag_of<T>::type, boost::fusion::struct_tag>;
 
@@ -187,6 +144,8 @@ FusionT Deserialize(std::string_view json_str)
             using type = typename boost::fusion::result_of::value_at<FusionT, decltype(index)>::type;
 
             const auto name = boost::fusion::extension::struct_member_name<FusionT,index>::call();
+            
+            // Тут проверка на то, есть ли имя переменной, что хотим найти в json
             if( content.count(name) == 0 )
             {
                 throw std::runtime_error( std::format( "\n\tВ json отсутствует ключ {}", name ) );
@@ -239,6 +198,7 @@ FusionT Deserialize(std::string_view json_str)
         }
     );
 
+    // Если какой-то переменной не найдем, вернет ошибку
     for( const auto& [key, value] : content )
     {
         if( !value )
@@ -253,9 +213,9 @@ FusionT Deserialize(std::string_view json_str)
 void test01()
 {
     pkg::Ranks ranks = {1, 2, 3, "example"};
+
     std::string json_str = Serialize(ranks);
     assert( json_str == "{\"r1\":1,\"r2\":2,\"r3\":3,\"some_str\":\"example\"}" );
-    //std::cout << "JSON: " << json_str << std::endl;
 
     auto deserialized_ranks = Deserialize<pkg::Ranks>(json_str);
     assert( deserialized_ranks.r1 == 1 );
@@ -266,13 +226,6 @@ void test01()
 
 void test02()
 {
-
-}
-
-int main()
-{
-    test01();
-
     pkg::S1 s1_0(1);
     pkg::S1 s1_1(2);
     pkg::S2 s2(1.22);
@@ -283,11 +236,27 @@ int main()
     s3.vals = std::vector<int>{1, 2, 3};
     s3.s2_val = s2;
     s3.s1_vals = std::vector<pkg::S1>{s1_0, s1_1};
+
     std::string json_str = Serialize(s3);
-    std::cout << ( ( json_str == "null" ) ? "" : json_str ) << std::endl;
-    std::cout << s3;
+    assert( json_str == "{\"r1\":123,\"r2\":1.2300000190734863,\"s1_vals\":[{\"r0\":1},{\"r0\":2}],\"s2_val\":{\"val\":1.2200000286102295},\"some_str\":\"abcde\",\"vals\":[1,2,3]}" );
 
     auto deserialized_s3 = Deserialize<pkg::S3>(json_str);
-    std::cout << deserialized_s3;
+    assert( deserialized_s3.r1 == 123 );
+    assert( deserialized_s3.r2 == 1.23f );
+    assert( deserialized_s3.some_str == "abcde" );
+    assert( deserialized_s3.vals.size() == 3 );
+    assert( deserialized_s3.vals[0] == 1 );
+    assert( deserialized_s3.vals[1] == 2 );
+    assert( deserialized_s3.vals[2] == 3 );
+    assert( deserialized_s3.s2_val.val == 1.22f );
+    assert( deserialized_s3.s1_vals.size() == 2 );
+    assert( deserialized_s3.s1_vals[0].r0 == 1 );
+    assert( deserialized_s3.s1_vals[1].r0 == 2 );
+}
+
+int main()
+{
+    test01();
+    test02();
     return 0;
 }
