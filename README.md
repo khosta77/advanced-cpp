@@ -1,5 +1,9 @@
 # Проект
 
+[Задание](https://docs.google.com/document/d/1m5wexeH6hctr91Jm-uDB6BH0_154d0GiJdT_nyyrkS8/edit?tab=t.0)
+
+### Комментарии
+
 Надо скачать библиотеку
 
 ```cmd
