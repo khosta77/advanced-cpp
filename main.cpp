@@ -47,6 +47,49 @@ BOOST_FUSION_DEFINE_STRUCT(
     (std::vector<pkg::S1>, s1_vals)
 )
 
+std::ostream& operator<<( std::ostream& os, const std::vector<int>& rhs )
+{
+    os << "[";
+    for( size_t i = 0, I = rhs.size(), I_ = ( I - 1 ); i < I; ++i )
+    {
+        os << rhs[i];
+        if( i != I_ )
+            os << ", ";
+    }
+    os << "]";
+    return os;
+}
+
+std::ostream& operator<<( std::ostream& os, const std::vector<pkg::S1>& rhs )
+{
+    os << "[";
+    for( size_t i = 0, I = rhs.size(), I_ = ( I - 1 ); i < I; ++i )
+    {
+        os << "{\"r0\": " << rhs[i].r0;
+        if( i != I_ )
+            os << "}, ";
+        else
+            os << "}";
+    }
+    os << "]";
+    return os;
+}
+
+std::ostream& operator<<( std::ostream& os, const pkg::S3& rhs )
+{
+    os << "{\n";
+    os << "\t\"r1\": " << rhs.r1 << ",\n";
+    os << "\t\"r2\": " << rhs.r2 << ",\n";
+    os << "\t\"some_str\": " << rhs.some_str << ",\n";
+    os << "\t\"vals\": " << rhs.vals << ",\n";
+    os << "\t\"s2_val\": {\"val\":" << rhs.s2_val.val << "},\n";
+    os << "\t\"s1_vals\": " << rhs.s1_vals << ",\n";
+    os << "}\n";
+    return os;
+}
+
+
+
 template <typename T>
 using is_fusion_struct = std::is_same<typename boost::fusion::traits::tag_of<T>::type, boost::fusion::struct_tag>;
 
@@ -93,13 +136,14 @@ std::string Serialize( const FusionT& fusion_obj )
                 if constexpr( is_fusion_struct<typename type::value_type>() == 1 )
                 {
                     const auto values = boost::fusion::at_c<index>(fusion_obj);
-                    std::vector<std::string> results(values.size());
+                    std::vector<Json> results(values.size());
                     size_t i = 0;
                     for( const auto& value : values )
                     {
-                        results[i++] = Serialize( value );
+                        std::string obj = Serialize( boost::fusion::at_c<index>(value) ); 
+                        results[i++] = Json::parse( std::move(obj) );
                     }
-                    json_obj[name] = std::move(results);
+                    json_obj[name] = results;
                 }
                 else
                 {
@@ -110,7 +154,8 @@ std::string Serialize( const FusionT& fusion_obj )
             {
                 if constexpr( is_fusion_struct<type>() == 1 )
                 {
-                    json_obj[name] = Serialize( boost::fusion::at_c<index>(fusion_obj) );
+                    const std::string obj = Serialize( boost::fusion::at_c<index>(fusion_obj) ); 
+                    json_obj[name] = Json::parse(obj);
                 }
                 else
                 {
@@ -129,6 +174,12 @@ FusionT Deserialize(std::string_view json_str)
     Json json_obj = Json::parse(json_str);
     FusionT fusion_obj{};
 
+    // Надо проверять так же json, которые приходят на вход. Просто из условия возможна такая ситуация,
+    // что на вход придет либо не полный json. Либо с лишним элементом...
+    std::unordered_map<std::string, bool> content( json_obj.size() );
+    for( const auto& it : json_obj.items() )
+        content[it.key()] = false;
+
     boost::fusion::for_each(
         boost::mpl::range_c<unsigned, 0, boost::fusion::result_of::size<FusionT>::value>(),
         [&]( auto index )
@@ -136,12 +187,69 @@ FusionT Deserialize(std::string_view json_str)
             using type = typename boost::fusion::result_of::value_at<FusionT, decltype(index)>::type;
 
             const auto name = boost::fusion::extension::struct_member_name<FusionT,index>::call();
-            const auto value = json_obj[name].template get<type>();
+            if( content.count(name) == 0 )
+            {
+                throw std::runtime_error( std::format( "\n\tВ json отсутствует ключ {}", name ) );
+            }
+            content[name] = true;
 
-            boost::fusion::at_c<index>(fusion_obj) = value;
+            if constexpr( !is_valid_type<type>::value )
+            {
+                throw std::runtime_error(
+                    std::format(
+                        "\n\tНе допустимое значение {}",
+                        boost::typeindex::type_id<type>().pretty_name()
+                    )
+                );
+            }
+
+            if constexpr( is_vector<type>() )
+            {
+                if constexpr( is_fusion_struct<typename type::value_type>() == 1 )
+                {
+#if 0
+                    const auto values = boost::fusion::at_c<index>(fusion_obj);
+                    std::vector<std::string> results(values.size());
+                    size_t i = 0;
+                    for( const auto& value : values )
+                    {
+                        results[i++] = Serialize( value );
+                    }
+                    json_obj[name] = std::move(results);
+#endif
+                }
+                else
+                {
+                    const type value = json_obj[name].template get<type>();
+                    boost::fusion::at_c<index>(fusion_obj) = value;
+                }
+            }
+            else
+            {
+                if constexpr( is_fusion_struct<type>() == 1 )
+                {
+                    ///Json buffer = Json::parse(json_obj[name]);
+                    //std::cout << json_obj[name].dump(4) << std::endl;
+                    //const type value = Deserialize<type>( json_obj[name] );
+                    //boost::fusion::at_c<index>(fusion_obj) = value;
+                }
+                else
+                {
+                    const type value = json_obj[name].template get<type>();
+                    boost::fusion::at_c<index>(fusion_obj) = value;
+                }
+            }
         }
     );
 
+    for( const auto& [key, value] : content )
+    {
+        if( !value )
+        {
+            throw std::runtime_error( std::format( "\n\tВ json лишний элемент {}", key ) );
+        }
+    }
+    
     return fusion_obj;
 }
 
@@ -175,5 +283,10 @@ int main()
     s3.s1_vals = std::vector<pkg::S1>{s1_0, s1_1};
     std::string json_str = Serialize(s3);
     std::cout << ( ( json_str == "null" ) ? "" : json_str ) << std::endl;
+    std::cout << s3;
+
+    // {"r1":123,"r2":1.2300000190734863,"s1_vals":["{\"r0\":1}","{\"r0\":2}"],"s2_val":"{\"val\":1.2200000286102295}","some_str":"abcde","vals":[1,2,3]}
+    auto deserialized_s3 = Deserialize<pkg::S3>(json_str);
+    std::cout << deserialized_s3;
     return 0;
 }
