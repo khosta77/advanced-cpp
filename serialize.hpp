@@ -13,19 +13,10 @@ std::string Serialize( const FusionT& fusion_obj )
         [&](auto index)
         {
             using type = typename boost::fusion::result_of::value_at<FusionT, decltype(index)>::type;
-            const auto name = boost::fusion::extension::struct_member_name<FusionT, index>::call();
+			static_assert( is_valid<type>::value );  // Выполняется на этапе компиляции
 
-            if constexpr( !is_valid_type<type>::value )
-            {
-                throw std::runtime_error(
-                    std::format(
-                        "\n\tНе допустимое значение {}",
-                        boost::typeindex::type_id<type>().pretty_name()
-                    )
-                );
-            }
-            
-            if constexpr( is_vector<type>() )
+            const auto name = boost::fusion::extension::struct_member_name<FusionT, index>::call();           
+            if constexpr( is_valid_vector_t<type>::value )
             {
                 if constexpr( is_fusion_struct<typename type::value_type>() == 1 )
                 {
@@ -40,9 +31,7 @@ std::string Serialize( const FusionT& fusion_obj )
                     json_obj[name] = results;
                 }
                 else
-                {
                     json_obj[name] = boost::fusion::at_c<index>(fusion_obj);
-                }
             }
             else
             {
@@ -52,9 +41,7 @@ std::string Serialize( const FusionT& fusion_obj )
                     json_obj[name] = Json::parse(obj);
                 }
                 else
-                {
                     json_obj[name] = boost::fusion::at_c<index>(fusion_obj);
-                }
             }
         }
     );

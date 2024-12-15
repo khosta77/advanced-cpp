@@ -20,27 +20,16 @@ FusionT Deserialize(std::string_view json_str)
         [&]( auto index )
         {
             using type = typename boost::fusion::result_of::value_at<FusionT, decltype(index)>::type;
+			static_assert( is_valid<type>::value );  // Выполняется на этапе компиляции
 
             const auto name = boost::fusion::extension::struct_member_name<FusionT,index>::call();
 
             // Тут проверка на то, есть ли имя переменной, что хотим найти в json
             if( content.count(name) == 0 )
-            {
                 throw std::runtime_error( std::format( "\n\tВ json отсутствует ключ {}", name ) );
-            }
             content[name] = true;
-
-            if constexpr( !is_valid_type<type>::value )
-            {
-                throw std::runtime_error(
-                    std::format(
-                        "\n\tНе допустимое значение {}",
-                        boost::typeindex::type_id<type>().pretty_name()
-                    )
-                );
-            }
-
-            if constexpr( is_vector<type>() )
+ 
+            if constexpr( is_valid_vector_t<type>::value )
             {
                 if constexpr( is_fusion_struct<typename type::value_type>() == 1 )
                 {

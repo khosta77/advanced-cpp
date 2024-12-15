@@ -9,6 +9,20 @@ BOOST_FUSION_DEFINE_STRUCT(
     (std::string, some_str)
 )
 
+void test01()
+{
+    pkg::Ranks ranks = {1, 2, 3, "example"};
+
+    std::string json_str = Serialize(ranks);
+    assert( json_str == "{\"r1\":1,\"r2\":2,\"r3\":3,\"some_str\":\"example\"}" );
+
+    auto deserialized_ranks = Deserialize<pkg::Ranks>(json_str);
+    assert( deserialized_ranks.r1 == 1 );
+    assert( deserialized_ranks.r2 == 2 );
+    assert( deserialized_ranks.r3 == 3 );
+    assert( deserialized_ranks.some_str == "example" );
+}
+
 BOOST_FUSION_DEFINE_STRUCT(
 	(pkg), S1,
 	(int, r0)
@@ -28,20 +42,6 @@ BOOST_FUSION_DEFINE_STRUCT(
     (pkg::S2, s2_val)
     (std::vector<pkg::S1>, s1_vals)
 )
-
-void test01()
-{
-    pkg::Ranks ranks = {1, 2, 3, "example"};
-
-    std::string json_str = Serialize(ranks);
-    assert( json_str == "{\"r1\":1,\"r2\":2,\"r3\":3,\"some_str\":\"example\"}" );
-
-    auto deserialized_ranks = Deserialize<pkg::Ranks>(json_str);
-    assert( deserialized_ranks.r1 == 1 );
-    assert( deserialized_ranks.r2 == 2 );
-    assert( deserialized_ranks.r3 == 3 );
-    assert( deserialized_ranks.some_str == "example" );
-}
 
 void test02()
 {
@@ -73,9 +73,22 @@ void test02()
     assert( deserialized_s3.s1_vals[1].r0 == 2 );
 }
 
+BOOST_FUSION_DEFINE_STRUCT(
+	(pkg), S4,
+	( bool, val )
+)
+
+void test03()
+{
+	// Закомментировал, тк будет ошибка компи
+	//pkg::S4 s4(true);
+    //std::string json_str = Serialize(s4);
+}
+
 int main()
 {
     test01();
     test02();
+	test03();
     return 0;
 }
