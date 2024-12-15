@@ -85,10 +85,47 @@ void test03()
     //std::string json_str = Serialize(s4);
 }
 
+void test04()
+{
+    pkg::Ranks ranks = {1, 2, 3, "example"};
+
+    std::string json_str = "{\"r1\":1,\"r2\":2,\"r3\":3,\"r4\":4,\"some_str\":\"example\"}";
+
+	try
+	{
+		auto deserialized_ranks = Deserialize<pkg::Ranks>(json_str);
+	}
+	catch( std::exception& emsg )
+	{
+		const std::string error_msg = emsg.what();
+        assert( error_msg == "\n\tВ json лишний элемент r4" );
+	};
+}
+
+void test05()
+{
+    pkg::Ranks ranks = {1, 2, 3, "example"};
+
+    std::string json_str = "{\"r1\":1,\"r2\":2,\"some_str\":\"example\"}";
+
+	try
+	{
+		auto deserialized_ranks = Deserialize<pkg::Ranks>(json_str);
+	}
+	catch( std::exception& emsg )
+	{
+		const std::string error_msg = emsg.what();
+        assert( error_msg == "\n\tВ json отсутствует ключ r3" );
+	};
+}
+
+
 int main()
 {
     test01();
     test02();
 	test03();
+	test04();
+    test05();
     return 0;
 }
