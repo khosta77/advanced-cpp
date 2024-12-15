@@ -140,7 +140,7 @@ std::string Serialize( const FusionT& fusion_obj )
                     size_t i = 0;
                     for( const auto& value : values )
                     {
-                        std::string obj = Serialize( boost::fusion::at_c<index>(value) ); 
+                        std::string obj = Serialize( value ); 
                         results[i++] = Json::parse( std::move(obj) );
                     }
                     json_obj[name] = results;
@@ -207,16 +207,15 @@ FusionT Deserialize(std::string_view json_str)
             {
                 if constexpr( is_fusion_struct<typename type::value_type>() == 1 )
                 {
-#if 0
-                    const auto values = boost::fusion::at_c<index>(fusion_obj);
-                    std::vector<std::string> results(values.size());
+                    const std::vector<Json> values = json_obj[name].template get<std::vector<Json>>();
+                    type results(values.size());
                     size_t i = 0;
                     for( const auto& value : values )
                     {
-                        results[i++] = Serialize( value );
+                        const auto obj = Deserialize<typename type::value_type>( value.dump() );
+                        results[i++] = obj;
                     }
-                    json_obj[name] = std::move(results);
-#endif
+                    boost::fusion::at_c<index>(fusion_obj) = results;
                 }
                 else
                 {
@@ -228,10 +227,8 @@ FusionT Deserialize(std::string_view json_str)
             {
                 if constexpr( is_fusion_struct<type>() == 1 )
                 {
-                    ///Json buffer = Json::parse(json_obj[name]);
-                    //std::cout << json_obj[name].dump(4) << std::endl;
-                    //const type value = Deserialize<type>( json_obj[name] );
-                    //boost::fusion::at_c<index>(fusion_obj) = value;
+                    const type value = Deserialize<type>( json_obj[name].dump() );
+                    boost::fusion::at_c<index>(fusion_obj) = value;
                 }
                 else
                 {
@@ -267,9 +264,14 @@ void test01()
     assert( deserialized_ranks.some_str == "example" );
 }
 
+void test02()
+{
+
+}
+
 int main()
 {
-    //test01();
+    test01();
 
     pkg::S1 s1_0(1);
     pkg::S1 s1_1(2);
@@ -285,7 +287,6 @@ int main()
     std::cout << ( ( json_str == "null" ) ? "" : json_str ) << std::endl;
     std::cout << s3;
 
-    // {"r1":123,"r2":1.2300000190734863,"s1_vals":["{\"r0\":1}","{\"r0\":2}"],"s2_val":"{\"val\":1.2200000286102295}","some_str":"abcde","vals":[1,2,3]}
     auto deserialized_s3 = Deserialize<pkg::S3>(json_str);
     std::cout << deserialized_s3;
     return 0;
