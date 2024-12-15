@@ -17,6 +17,7 @@ test:
 	@gcov test_main-main.cpp | grep -A 1 "File 'serialize.hpp'"
 	@gcov test_main-main.cpp | grep -A 1 "File 'deserialize.hpp'"
 	@echo "---------------------"
+	@rm -rf main *.out test_main *.gcov *.gcda *.gcno *.dSYM
 
 $(TARGET):
 	$(CC) $(CXXFLAGS) $(STD) -O2 $(W) main.cpp -o $(TARGET)
