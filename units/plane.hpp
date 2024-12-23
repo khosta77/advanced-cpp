@@ -14,7 +14,7 @@
 #include "unit.hpp"
 
 class Segment {
-private:
+public:
   size_t currentWeight;
   size_t maxWieght;
   std::vector<std::list<Bag>> bags_group;
@@ -34,6 +34,7 @@ private:
     std::vector<std::pair<size_t, size_t>> df;
     for (size_t i = 0, j = 1; i < 24; ++i, ++j) {
       if (bags_group[j].size() != 0) {
+        std::cout << "\t" << neededFreeSpace << ' ' << j  << ' ' <<( neededFreeSpace / j ) << std::endl;
         std::pair<size_t, size_t> x{(neededFreeSpace / j), 0};
         if ((neededFreeSpace % j))
           ++x.first;
@@ -57,6 +58,77 @@ public:
     bags_group.clear();
   }
 
+    struct BufferBagStatus
+    {
+        bool _b1;
+        bool _b2;
+        bool _b3;
+        bool _b4;
+
+        BufferBagStatus() : _b1(false), _b2(false), _b3(false), _b4(false) {}
+        BufferBagStatus( const bool b1, const bool b2, const bool b3, const bool b4 ) : _b1(b1), _b2(b2),
+            _b3(b3), _b4(b4) {}
+        ~BufferBagStatus() = default;
+    };
+
+    size_t bsum( const std::array<Bag, 4> &bags ) {
+        return ( bags[0].weight +  bags[1].weight + bags[2].weight + bags[3].weight);
+    }
+
+    BufferBagStatus append(const std::array<Bag, 4> &bags) {
+        //std::cout << std::endl;
+        //std::cout << bags[0].weight << ' ' << bags[1].weight << ' ' << bags[2].weight << ' ' << bags[3].weight << std::endl;
+        size_t bXs = (currentWeight + bsum(bags));
+
+        if( bXs < maxWieght ) {
+            currentWeight = bXs;
+            bags_group[bags[0].weight].push_front(bags[0]);
+            bags_group[bags[1].weight].push_front(bags[1]);
+            bags_group[bags[2].weight].push_front(bags[2]);
+            bags_group[bags[3].weight].push_front(bags[3]);
+
+            return BufferBagStatus(true, true, true, true);
+        }
+
+        BufferBagStatus bbs;
+        size_t bX = currentWeight;
+        if( ( bX + bags[0].weight ) < maxWieght ) {
+            bbs._b1 = true;
+            bX += bags[0].weight;
+            currentWeight += bags[0].weight;
+            bags_group[bags[0].weight].push_front(bags[0]);
+        }
+        std::cout << std::endl;
+        //std::cout << "bag: " << bX << std::endl;
+
+        if( ( bX + bags[1].weight ) < maxWieght ) {
+            bbs._b2 = true;
+            bX += bags[1].weight;
+            currentWeight += bags[1].weight;
+            bags_group[bags[1].weight].push_front(bags[0]);
+        }
+        //std::cout << "bag: " << bX << std::endl;
+
+        if( ( bX + bags[2].weight ) < maxWieght ) {
+            bbs._b3 = true;
+            bX += bags[2].weight;
+            currentWeight += bags[2].weight;
+            bags_group[bags[2].weight].push_front(bags[2]);
+        }
+        //std::cout << "bag: " << bX << std::endl;
+
+        if( ( bX + bags[3].weight ) < maxWieght ) {
+            bbs._b4 = true;
+            currentWeight += bags[3].weight;
+            bX += bags[3].weight;
+            bags_group[bags[3].weight].push_front(bags[3]);
+        }
+        std::cout << "bag: " << bX << std::endl;
+
+        return bbs;
+    }
+
+/*
   std::pair<bool, bool> append(const std::array<Bag, 4> &bags) {
     size_t bX1 = (currentWeight + bags[2].weight);
     size_t bX2 = (currentWeight + bags[3].weight);
@@ -69,19 +141,41 @@ public:
       return std::pair<bool, bool>{false, true};
 
     if (checkWeight(bX2, bX1, bags[2]))
-      return std::pair<bool, bool>{false, true};
+      return std::pair<bool, bool>{true, false};
 
     currentWeight += (bags[2].weight + bags[3].weight);
     bags_group[bags[2].weight].push_front(bags[2]);
     bags_group[bags[3].weight].push_front(bags[3]);
     return std::pair<bool, bool>{true, true};
   }
-
+*/
   void findFreeSpace(const Bag &bag, std::ostream &out) {
     const size_t w = bag.weight;
-    size_t neededFreeSpace = (currentWeight - (maxWieght - w));
+    const size_t up = ( maxWieght - w );
+    std::cout << "In findFreeSpace: " << w << '\t' << ( maxWieght - w ) <<  '\t' << currentWeight<< std::endl;
+
+    if( bag.weight < ( maxWieght - currentWeight ) )
+    {
+        currentWeight += bag.weight;
+        bags_group[bag.weight].push_back(bag);
+        return; 
+    }
+
+    size_t neededFreeSpace = 0;
+    if( up > currentWeight )
+        neededFreeSpace = ( up - currentWeight );
+    else
+        neededFreeSpace = ( currentWeight - up );
+    //(currentWeight - (maxWieght - w));
+
+    // время супер костыля....
+    std::vector<size_t> ids;
 
     auto df = fillAdjacentPairs(neededFreeSpace);
+    //for( const auto&[ first, second ] : df )
+    //{
+        //std::cout << first << ") " << second << std::endl;
+    //}
     for (const auto &[first, second] : df) {
       for (size_t i = 0; i < first; ++i) {
         if (bags_group[second].empty())
@@ -90,9 +184,13 @@ public:
         if (neededFreeSpace <= maxWieght) {
           neededFreeSpace -= second;
           currentWeight -= second;
+
+          if( std::find(ids.begin(), ids.end(), bags_group[second].front().passengerId) == ids.end() )
           out << std::format(
               "!!PASSENGER’S LUGGAGE REMOVED FROM FLIGHT, ID = {}!!\n",
               bags_group[second].front().passengerId);
+
+          ids.push_back(bags_group[second].front().passengerId);
           bags_group[second].pop_front();
         }
       }
@@ -103,6 +201,8 @@ public:
     df.clear();
     currentWeight += w;
     bags_group[w].push_back(bag);
+    ids.clear();
+    //std::cout << "findFreeSpace access" << std::endl;
   }
 };
 
@@ -164,6 +264,45 @@ private:
   template <typename T>
   bool toRegister(std::ostream &out, const std::string &type, const size_t &id,
                   const std::array<Bag, 4> &bags, const std::string &cs) {
+    std::cout << class_segment[fcs].currentWeight << ' '
+              << class_segment[bcs].currentWeight << ' '
+              << class_segment[ecs].currentWeight << std::endl;
+    Passenger *passenger = new T(id, bags);
+    if (!passenger->WillWeBeAbleToRegisterIt()) {
+      delete passenger;
+      out << std::format("!!CANT REGISTER {} PASSENGER, ID = {}!!\n", type, id);
+      return false;
+    }
+    auto bbs = class_segment[cs].append(bags);
+
+    if( bbs._b1 && bbs._b2 && bbs._b3 && bbs._b4 ) {
+      thePlane.push_back(passenger);
+      return true;
+    }
+
+    std::cout << std::boolalpha << bbs._b1 << ' ' << bbs._b2 << ' ' << bbs._b3 << ' ' << bbs._b4 << ' ' << std::endl; 
+    if( !bbs._b1 or !bbs._b2) {
+        delete passenger;
+        out << std::format("!!CANT REGISTER {} PASSENGER, ID = {}!!\n", type, id);
+        return false;
+    }
+
+    if( !bbs._b3 )
+      class_segment[ecs].findFreeSpace(bags[2], out);
+
+
+    if( !bbs._b4 )
+      class_segment[ecs].findFreeSpace(bags[3], out);
+
+    thePlane.push_back(passenger);
+    return true;
+  }
+
+
+/*
+  template <typename T>
+  bool toRegister(std::ostream &out, const std::string &type, const size_t &id,
+                  const std::array<Bag, 4> &bags, const std::string &cs) {
     Passenger *passenger = new T(id, bags);
     if (!passenger->WillWeBeAbleToRegisterIt()) {
       delete passenger;
@@ -186,7 +325,7 @@ private:
     thePlane.push_back(passenger);
     return true;
   }
-
+*/
   bool isRange(const std::string &type) {
     return (passenger_size[type].first <= passenger_size[type].second);
   }
