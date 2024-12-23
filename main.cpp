@@ -36,7 +36,7 @@ BOOST_FUSION_DEFINE_STRUCT(
 BOOST_FUSION_DEFINE_STRUCT(
 	(pkg), S3,
 	(int, r1)
-    (float, r2)
+    (double, r2)
 	(std::string, some_str)
     (std::vector<int>, vals)
     (pkg::S2, s2_val)
